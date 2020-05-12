@@ -33,7 +33,7 @@ LuaObj LuaObj::_nilobject;
 
 /* LuaObj constr: get a LuaObj representing the object X at -1 on the stack */
 
-LuaObj::LuaObj(lua_State *L) : type(ValueType::NIL)
+LuaObj::LuaObj(lua_State *L) : type(Type::Nil)
 {
 	using std::string;
 	
@@ -42,26 +42,26 @@ LuaObj::LuaObj(lua_State *L) : type(ValueType::NIL)
 	// If we are a simple type, just set type & value
 	if (lhIsSimpleType(L, -1)) {
 		if (lua_isboolean(L, -1)) {
-			type = ValueType::BOOL;
+			type = Type::Bool;
 			bool_value = lua_toboolean(L, -1);
 		}
 		else if (lua_isnumber(L, -1)) {
-			type = ValueType::NUMBER;
+			type = Type::Numeric;
 			number_value = lua_tonumber(L, -1);
 		}
 		else if (lua_isstring(L, -1)) {
-			type = ValueType::STRING;
+			type = Type::String;
 			str_value = lua_tostring(L, -1);
 		}
 	}
 	
 	// If we are a table, recursively get descendants
 	else if (lua_istable(L, -1)) {
-		type = ValueType::TABLE;
+		type = Type::Table;
 		lua_pushnil(L);					// S: nil, X
 		while (lua_next(L, -2)) {		// S: value, key, X
 			LuaObj desc(L);
-			if (desc.type != ValueType::NIL && lhIsSimpleType(L, -2)) {
+			if (desc.type != Type::Nil && lhIsSimpleType(L, -2)) {
 				std::string descName = lhSimpleTypeToString(L, -2);
 				descendants.insert(_descendantmap::value_type(descName, desc));
 			}
@@ -85,19 +85,19 @@ std::string LuaObj::_print() const {
 	std::stringstream ss;
 	ss << std::string("type: ");
 	ss << std::string(
-		type == ValueType::TABLE ? "table" :
-		type == ValueType::NUMBER ? "number" :
-		type == ValueType::BOOL ? "bool" :
-		type == ValueType::STRING ? "string" :
-		type == ValueType::NIL ? "nil" : "unknown"
+		type == Type::Table ? "table" :
+		type == Type::Numeric ? "number" :
+		type == Type::Bool ? "bool" :
+		type == Type::String ? "string" :
+		type == Type::Nil ? "nil" : "unknown"
 	);
-	if (type != ValueType::NIL) {
+	if (type != Type::Nil) {
 		ss << " value: ";
-		if (type == ValueType::NUMBER) ss << number_value;
-		else if (type == ValueType::STRING) ss <<  str_value;
+		if (type == Type::Numeric) ss << number_value;
+		else if (type == Type::String) ss <<  str_value;
 		else ss << (bool_value ? "true" : "false");
 	}
-	else if (type == ValueType::TABLE)
+	else if (type == Type::Table)
 		ss << " descendants: " << descendants.size();
 	return ss.str();
 }

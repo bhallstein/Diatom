@@ -34,9 +34,11 @@ public:
 		// Create a recursive LuaObj representing whatever is at -1
 		// on the supplied lua stack.
 	
-	enum ValueType {
-		NUMBER, BOOL, STRING, TABLE, NIL
-	} type;
+	class Type {
+	public:
+		enum T { Numeric, Bool, String, Table, Nil };
+	};
+	Type::T type;
 	
 	float       number_value;
 	bool        bool_value;
@@ -49,14 +51,14 @@ public:
 	
 	LuaObj& operator[] (const char *);
 	LuaObj& operator[] (const std::string &);
-	bool isTable()  { return type == TABLE; }
-	bool isNumber() { return type == NUMBER; }
-	bool isString() { return type == STRING; }
-	bool isBool()   { return type == BOOL; }
-	bool isNil()    { return type == NIL; }
+	bool isTable()  { return type == Type::Table; }
+	bool isNumber() { return type == Type::Numeric; }
+	bool isString() { return type == Type::String; }
+	bool isBool()   { return type == Type::Bool; }
+	bool isNil()    { return type == Type::Nil; }
 	
 private:
-	LuaObj() : type(NIL) { }
+	LuaObj() : type(Type::Nil) { }
 		// Create an empty/nil LuaObj
 
 	std::string _print() const;
