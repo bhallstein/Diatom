@@ -11,10 +11,8 @@
  *
  */
 
-#ifndef __W__LuaObj
-#define __W__LuaObj
-
-#include "lua.hpp"
+#ifndef __LuaObj_h
+#define __LuaObj_h
 
 #include <map>
 #include <string>
@@ -26,15 +24,14 @@ struct NumericoidStringComparator {
 	static bool _strToT(T &t, const std::string &s);
 };
 
+class lua_State;
+
 
 class LuaObj {
 public:
-	LuaObj(lua_State *);
-		// Create a recursive LuaObj representing whatever is at -1
-		// on the supplied lua stack.
+	LuaObj(std::string filename, std::string objectName);
 	
-	class Type {
-	public:
+	struct Type {
 		enum T { Numeric, Bool, String, Table, Nil };
 	};
 	Type::T type;
@@ -57,14 +54,13 @@ public:
 	bool isNil()    { return type == Type::Nil; }
 	
 private:
-	LuaObj() : type(Type::Nil) { }
-		// Create an empty/nil LuaObj
-
+	LuaObj() : type(Type::Nil) { }		// Create an empty/nil LuaObj
+	
+	void load(lua_State *L);			// Populate recursively from lua stack
 	std::string _print() const;
+	
 	static LuaObj _nilobject;
 	
-	static bool lhIsSimpleType(lua_State *, int ind);
-	static std::string lhSimpleTypeToString(lua_State *, int ind);
 };
 
 

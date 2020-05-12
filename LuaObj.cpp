@@ -12,9 +12,54 @@
  */
 
 #include "LuaObj.h"
+#include "lua.hpp"
 #include <sstream>
 
-/* N.S.C. implementation */
+#pragma mark Helpers
+
+bool __lhIsSimpleType(lua_State *L, int ind) {
+	return (lua_isnumber(L, ind) || lua_isboolean(L, ind) || lua_isstring(L, ind));
+} 
+std::string __lhSimpleTypeToString(lua_State *L, int ind) {
+	std::string s;
+	if (lua_isboolean(L, ind))
+		s = lua_toboolean(L, ind) ? "true" : "false";
+	else if (lua_isnumber(L, ind)) {
+		std::stringstream ss;
+		ss << lua_tonumber(L, ind);
+		s = ss.str();
+	}
+	else if (lua_isstring(L, ind))
+		s = lua_tostring(L, ind);
+	return s;
+}
+bool __luaLoad(const std::string &filename, lua_State **L) {
+	*L = luaL_newstate();
+	bool loadError = luaL_loadfile(*L, filename.c_str());
+	if (loadError) {
+		printf(
+			"Couldn't open lua file '%s' - error was: %s\n",
+				filename.c_str(),
+				lua_tostring(*L, -1)
+		);
+		lua_close(*L);
+		return false;
+	}
+	bool runError = lua_pcall(*L, 0, 0, 0);
+	if (runError) {
+		printf(
+			"Couldn't execute file '%s' - error was: %s\n",
+				filename.c_str(),
+				lua_tostring(*L, -1)
+		);
+		lua_close(*L);
+		return false;
+	}
+	return true;
+}
+
+
+#pragma mark - NumericoidStringComparator
 
 bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) const {
 	float x, y;
@@ -29,19 +74,30 @@ bool NumericoidStringComparator::_strToT(T &t, const std::string &s) {
 	return !(std::istringstream(s) >> t).fail();
 }
 
+
+#pragma mark - LuaObj
+
 LuaObj LuaObj::_nilobject;
 
+LuaObj::LuaObj(std::string filename, std::string objectname) :
+	type(Type::Nil)
+{
+	lua_State *L;
+	if (__luaLoad(filename, &L)) {
+		lua_getglobal(L, objectname.c_str());
+		load(L);
+		lua_close(L);
+	}
+}
 
-/* LuaObj constr: get a LuaObj representing the object X at -1 on the stack */
-
-LuaObj::LuaObj(lua_State *L) : type(Type::Nil)
+void LuaObj::load(lua_State *L)
 {
 	using std::string;
 	
 	if (!L) return;
 	
 	// If we are a simple type, just set type & value
-	if (lhIsSimpleType(L, -1)) {
+	if (__lhIsSimpleType(L, -1)) {
 		if (lua_isboolean(L, -1)) {
 			type = Type::Bool;
 			bool_value = lua_toboolean(L, -1);
@@ -61,9 +117,10 @@ LuaObj::LuaObj(lua_State *L) : type(Type::Nil)
 		type = Type::Table;
 		lua_pushnil(L);					// S: nil, X
 		while (lua_next(L, -2)) {		// S: value, key, X
-			LuaObj desc(L);
-			if (desc.type != Type::Nil && lhIsSimpleType(L, -2)) {
-				std::string descName = lhSimpleTypeToString(L, -2);
+			LuaObj desc;
+			desc.load(L);
+			if (desc.type != Type::Nil && __lhIsSimpleType(L, -2)) {
+				std::string descName = __lhSimpleTypeToString(L, -2);
 				descendants.insert(_descendantmap::value_type(descName, desc));
 			}
 			lua_pop(L, 1);				// S: key, X
@@ -72,10 +129,8 @@ LuaObj::LuaObj(lua_State *L) : type(Type::Nil)
 }
 
 
-/* LuaObj implementation */
-
 LuaObj& LuaObj::operator[] (const char *s) {
-	_descendantmap::iterator it = descendants.find(s);
+	auto it = descendants.find(s);
 	return (it == descendants.end() ? _nilobject : it->second);
 }
 LuaObj& LuaObj::operator[] (const std::string &s) {
@@ -92,33 +147,16 @@ std::string LuaObj::_print() const {
 		type == Type::String ? "string" :
 		type == Type::Nil ? "nil" : "unknown"
 	);
-	if (type != Type::Nil) {
+	
+	if (type == Type::Table)
+		ss << " n_descendants: " << descendants.size();
+	else if (type != Type::Nil) {
 		ss << " value: ";
 		if (type == Type::Numeric) ss << number_value;
 		else if (type == Type::String) ss <<  str_value;
 		else ss << (bool_value ? "true" : "false");
 	}
-	else if (type == Type::Table)
-		ss << " descendants: " << descendants.size();
+
 	return ss.str();
 }
 
-
-/* LuaObj static helpers */
-
-bool LuaObj::lhIsSimpleType(lua_State *L, int ind) {
-	return lua_isnumber(L, ind) || lua_isboolean(L, ind) || lua_isstring(L, ind);
-}
-std::string LuaObj::lhSimpleTypeToString(lua_State *L, int ind) {
-	std::string s;
-	if (lua_isboolean(L, ind))
-		s = lua_toboolean(L, ind) ? "true" : "false";
-	else if (lua_isnumber(L, ind)) {
-		std::stringstream ss;
-		ss << lua_tonumber(L, ind);
-		s = ss.str();
-	}
-	else if (lua_isstring(L, ind))
-		s = lua_tostring(L, ind);
-	return s;
-}
