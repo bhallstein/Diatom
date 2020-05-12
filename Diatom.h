@@ -17,15 +17,11 @@
 
 
 class Diatom {
-private:
-	struct NumericoidStringComparator {
-		bool operator() (const std::string &a, const std::string &b) const;
-	};
 public:
 	struct Type {
 		enum T { Number, Bool, String, Table, _Nil };
 	};
-	typedef std::map<std::string, Diatom, NumericoidStringComparator> _descendantmap;
+	typedef std::map<std::string, Diatom> _descendantmap;
 	
 	Diatom(double x) : _type(Type::Number), _number_value(x) {  }   // Numeric
 	Diatom(bool x)   : _type(Type::Bool),   _bool_value(x) {  }     // Bool

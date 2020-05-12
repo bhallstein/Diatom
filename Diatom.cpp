@@ -7,32 +7,7 @@
  */
 
 #include "Diatom.h"
-#include <sstream>
 
-#pragma mark Helpers
-
-template <typename T>
-bool __diatom_strToT(T &t, const std::string &s) {
-	return !(std::istringstream(s) >> t).fail();
-}
-
-
-#pragma mark - NumericoidStringComparator
-
-bool Diatom::NumericoidStringComparator::operator()(
-	const std::string &a, const std::string &b
-) const {
-	double x, y;
-	bool a_numeric = __diatom_strToT(x, a);
-	bool b_numeric = __diatom_strToT(y, b);
-	if (a_numeric && !b_numeric) return true;
-	else if (!a_numeric && b_numeric) return false;
-	else if (a_numeric && b_numeric) return (x < y);
-	return (a < b);
-}
-
-
-#pragma mark - Diatom
 
 Diatom Diatom::_nilobject = Diatom(MrNil());
 
