@@ -33,9 +33,9 @@ Descendants are accessed using the subscript operator:
     `LuaObj a_descendant = myObj["descendant_name"];`
 
 
-Table members of unsupported type are skipped, i.e. not added to the descendants map at all
+Table members of unsupported type are skipped, i.e. not added to the descendants map at all.
 
-On table keys:
+On descendant ordering:
 
 - When populating the descendants map, LuaObj turns all table keys into strings
 - The map is sorted using the Numericoid String Comparator, i.e. '10zxc' will come after '1zxc'.
