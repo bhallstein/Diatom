@@ -83,12 +83,12 @@ std::string LuaObj::_print() const {
 	std::stringstream ss;
 	ss << std::string("type: ");
 	ss << std::string(
-					  type == ValueType::TABLE ? "table" :
-					  type == ValueType::NUMBER ? "number" :
-					  type == ValueType::BOOL ? "bool" :
-					  type == ValueType::STRING ? "string" :
-					  type == ValueType::NIL ? "nil" : "unknown"
-					  );
+		type == ValueType::TABLE ? "table" :
+		type == ValueType::NUMBER ? "number" :
+		type == ValueType::BOOL ? "bool" :
+		type == ValueType::STRING ? "string" :
+		type == ValueType::NIL ? "nil" : "unknown"
+	);
 	if (type != ValueType::NIL) {
 		ss << " value: ";
 		if (type == ValueType::NUMBER) ss << number_value;
