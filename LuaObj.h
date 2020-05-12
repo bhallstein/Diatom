@@ -22,9 +22,9 @@
 
 
 struct NumericoidStringComparator {
-	bool operator() (const std::string &a, const std::string &b);
+	bool operator() (const std::string &a, const std::string &b) const;
 	template <typename T>
-	bool _strToT(T &t, const std::string &s);
+	static bool _strToT(T &t, const std::string &s);
 };
 
 class LuaObj {

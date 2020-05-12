@@ -15,7 +15,7 @@
 
 /* N.S.C. implementation */
 
-bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) {
+bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) const {
 	float x, y;
 	bool a_numeric = _strToT(x, a), b_numeric = _strToT(y, b);
 	if (a_numeric && !b_numeric) return true;
@@ -27,7 +27,6 @@ template <typename T>
 bool NumericoidStringComparator::_strToT(T &t, const std::string &s) {
 	return !(std::istringstream(s) >> t).fail();
 }
-
 
 LuaObj LuaObj::_nilobject;
 
