@@ -1,15 +1,18 @@
 # Diatom
 
-A C++ object that stores strings, numbers, bools, or other Diatoms. These objects then trivially serialize to and from string.
+A C++ object that stores strings, numbers, bools, or other Diatoms. These objects then trivially serialize to and from strings.
 
 Created to collect data in a video game prior to serialization.
 
-Written in 2012, modified 2015 & 2020. Doesn't include unicode support. It's very much a hobbyist/tinkering project, not for use.
+Written in 2012, modified 2015 & 2020. Doesn't include unicode support. It's very much a hobbyist/tinkering project, not for general use.
 
 To run tests: `bash run.sh` from the `/test` directory.
 
 ```
-Diatoms are single-celled algae that float freely in the ocean. Encased in transparent silica, they take a variety of incredibly beautiful (microscopic) forms, and are the only organisms to have cell walls made from glass.
+Diatoms are single-celled algae that float freely in the ocean.
+Encased in transparent silica, they take a variety of incredibly
+beautiful (microscopic) forms, and are the only organisms to have
+cell walls made from glass.
 ```
 
 
@@ -49,11 +52,10 @@ Diatom::Type::Nil
 ### Properties
 
 ```cpp
-Type::T type;
+Diatom::Type::T  type;
 double           value__number;
 bool             value__bool;
 std::string      value__string;
-TableEntryVector descendants;
 ```
 
 ### Methods
@@ -69,12 +71,13 @@ Diatom operator[](const Diatom &)
 
 template <class F>
 void each(F f)
-	// for a table Diatom, calls f(std::string name, Diatom entry) for each child
+	// for a table Diatom, calls f(std::string name, Diatom entry)
+	// for each child
 
 template <class F>
 void recurse(F f)
-	// for a table Diatom, recurses through the table while calling
-	// f(std::string name, Diatom entry)
+	// for a table Diatom, recursively traverse descendants calling
+	// f(std::string name, Diatom entry) on each
 ```
 
 
