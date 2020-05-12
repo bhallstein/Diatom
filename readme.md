@@ -24,13 +24,13 @@ Alternatively, you can construct a LuaObj from an already-loaded script. First p
 
 Apart from tables, which have descendants representing values, a LuaObj may represent a number, string, bool, or nil. The type is stored in the object’s `type` property, and is one of the enum `LuaObj::Type::T` values, `Numeric`, `Bool`, `String`, `Table`, or `Nil`.
 
-The represented value itself is stored in another property – depending on type, `float number_value`, `bool bool_value`, or `std::string str_value`.
+The represented value itself is stored in another property – depending on type, `double number_value`, `bool bool_value`, or `std::string str_value`.
 
     if (myObj.type == LuaObj::Type::Table)
         ; // iterate its descendants, perhaps
     
     if (myObj.type == LuaObj::Type::Numeric)
-        float f = myObj.number_value;
+        double f = myObj.number_value;
 
 
 ## Accessing Descendants

@@ -32,7 +32,7 @@ public:
 	};
 	Type::T type;
 	
-	float       number_value;
+	double      number_value;
 	bool        bool_value;
 	std::string str_value;
 	

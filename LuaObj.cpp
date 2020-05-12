@@ -57,7 +57,7 @@ bool __luaobj_luaLoad(const std::string &filename, lua_State **L) {
 #pragma mark - NumericoidStringComparator
 
 bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) const {
-	float x, y;
+	double x, y;
 	bool a_numeric = _strToT(x, a), b_numeric = _strToT(y, b);
 	if (a_numeric && !b_numeric) return true;
 	else if (!a_numeric && b_numeric) return false;
