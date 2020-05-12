@@ -15,17 +15,12 @@ The constructor simply takes a filename and the name of the (global) object to l
 
 ## Types & Values
 
-Apart from tables, LuaObj supports numbers (i.e. floats), strings, bools, and nil.
+Apart from tables, a LuaObj may represent numbers (i.e. floats), strings, bools, and nil. The type is stored in the object’s `type` property, and is one of the enum `LuaObj::Type::T` values, `Numeric`, `Bool`, `String`, `Table`, or `Nil`.
 
-- The type is represented in the `type` property, which is of the enum type `LuaObj::Type::T`
-	- Type names are: `Numeric`, `Bool`, `String`, `Table`, `Nil`
-- The value of the object is stored in one of the following properties, depending on type:
-	- `float number_value`
-	- `bool bool_value`
-	- `std::string str_value`
+The represented value itself is stored in another property – depending on type, `float number_value`, `bool bool_value`, or `std::string str_value`.
 
     if (myObj.type == LuaObj::Type::Table)
-        // iterate its descendants, perhaps
+        ; // iterate its descendants, perhaps
     
     if (myObj.type == LuaObj::Type::Numeric)
         float f = myObj.number_value;
