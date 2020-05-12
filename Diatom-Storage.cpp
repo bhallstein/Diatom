@@ -249,6 +249,7 @@ Diatom diatomFromString(const Str &str) {
 		int indentNum = 0;
 		
 		int currentIndent = 0;
+		int newIndent = 0;
 		int newlines = 0;
 		
 		State(const Str &_input) : input(_input) { }
@@ -291,7 +292,10 @@ Diatom diatomFromString(const Str &str) {
 			break;
 		}
 		
-		if (t.type == Token::EndOfLine) ++state.newlines;
+		if (t.type == Token::EndOfLine) {
+			++state.newlines;
+			state.newIndent = 0;
+		}
 		
 		if (t.type == Token::EndOfString) {
 			if (state.pos == State::StartLine || state.pos >= State::Property)
@@ -334,24 +338,29 @@ Diatom diatomFromString(const Str &str) {
 						StateErr_Ws(state.newlines+1, state.indentNum, state.indentType);
 					}
 				}
-				int newIndent = n / state.indentNum;
-
-				// If indent is higher than expected, error
-				if (newIndent > state.currentIndent)
-					StateErr_Ws(state.newlines+1, state.indentNum, state.indentType);
+				state.newIndent = n / state.indentNum;
 				
+				// If indent is higher than expected, error
+				if (state.newIndent > state.currentIndent)
+					StateErr_Ws(state.newlines+1, state.indentNum, state.indentType);
+			
 				// If indent has decreased, pop table stack N times
-				if (newIndent < state.currentIndent) {
-					int N = state.currentIndent - newIndent;
+				if (state.newIndent < state.currentIndent) {
+					int N = state.currentIndent - state.newIndent;
 					for (int i=0; i < N; ++i)
 						state.stack.pop_back();
 				}
-				state.currentIndent = newIndent;
+				state.currentIndent = state.newIndent;
 			}
 			
 			else if (t.type == Token::Name) {
 				state.pname = t.s;
 				state.pos   = State::Colon;
+				
+				int N = state.currentIndent - state.newIndent;
+				for (int i=0; i < N; ++i)
+					state.stack.pop_back();
+				state.currentIndent = state.newIndent;
 			}
 			
 			else if (t.type == Token::EndOfLine) {
