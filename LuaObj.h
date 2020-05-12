@@ -60,5 +60,8 @@ private:
 	
 };
 
+// Pretty indenting function for lua
+void reindentLuaString(std::string &s);
+
 
 #endif

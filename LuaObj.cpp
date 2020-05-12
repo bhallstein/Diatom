@@ -162,3 +162,33 @@ std::string LuaObj::_print() const {
 	return ss.str();
 }
 #endif
+
+
+// Reindenting function for lua
+
+void reindentLuaString(std::string &s) {
+	std::string t;
+	int indentLevel = 0;
+	bool insideString = false;
+
+	for (auto it = s.begin(), str_begin = s.begin(), str_end = s.end(); it != str_end; ++it) {
+		bool last  = (it+1 == str_end);
+		bool first = (it == str_begin);
+		char c = *it, cp, cn;
+		if (!first) cp = *(it-1);
+		if (!last) cn = *(it+1);
+		
+		if (!insideString && c == '"')              insideString = true;
+		if (insideString && c == '"' && cp != '\\') insideString = false;
+		
+		if (c == '{' && !insideString)           ++indentLevel;
+		if (!last && cn == '}' && !insideString) --indentLevel;
+		
+		t += c;
+		if (c == '\n' && !insideString) {
+			for (int i=0; i < indentLevel; ++i) t += "\t";
+		}
+	}
+	s = t;
+}
+
