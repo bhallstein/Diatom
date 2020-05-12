@@ -1,15 +1,6 @@
-/*
-clang++ -std=c++11  \
-  test.cpp          \
-  Diatom.cpp        \
-  Diatom-Lua.cpp    \
-  -I ../L-Serialize/lua-5.2.1/src/   \
-  -L ../L-Serialize/lua-5.2.1/       \
-  -lLua-x86_64-O3
-*/
-
 #include "Diatom.h"
 #include "Diatom-Lua.h"
+#include "Diatom-Storage.h"
 #include <cassert>
 #include <unistd.h>
 
@@ -88,7 +79,7 @@ void testDiatom() {
 	p_assert(mikhail.str_value() == "Gorbachev");
 	p_assert(p_mikhail_1 != p_mikhail_2);
 	
-	printf("- Testing serialization\n");
+	printf("- Testing lua serialization\n");
 	tl_1["francais"] = Diatom();
 	tl_1["francais"]["jacques"] = "Chirac";
 	{ /* Serialize to tmp file */
@@ -101,6 +92,20 @@ void testDiatom() {
 	Diatom d_ser = luaToDiatom("/tmp/diatom-test.lua", "testykins");
 	unlink("/tmp/diatom-test.lua");
 	Diatom nikolai2 = d_ser["russians"]["nikolai"];
+	p_assert(nikolai2.number_value() == 12.4);
+	
+	printf("- Testing .diatom serialization\n");
+	{ /* Serialize to tmp file */
+		std::string ser = diatomToString(tl_1, "testykins");
+		// printf("%s\n", ser.c_str());
+		FILE *fp = fopen("/tmp/diatom-test.diatom", "w");
+		p_assert(fp);
+		fputs(ser.c_str(), fp);
+		fclose(fp);
+	}
+	d_ser = diatomFromFile("/tmp/diatom-test.diatom")["testykins"];
+	unlink("/tmp/diatom-test.diatom");
+	nikolai2 = d_ser["russians"]["nikolai"];
 	p_assert(nikolai2.number_value() == 12.4);
 	
 	printf("\n");

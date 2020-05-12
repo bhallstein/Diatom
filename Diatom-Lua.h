@@ -1,8 +1,12 @@
 /*
- * diatomToLua.h
+ * Diatom-Lua.h
  * 
  * - Serialization to lua string
  * - Deserialization from lua file
+ *
+ *
+ * Copyright (c) 2015 - Ben Hallstein - ben.am
+ * Published under the MIT license - http://opensource.org/licenses/MIT
  *
  */
 

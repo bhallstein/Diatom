@@ -1,12 +1,17 @@
 /*
  * Diatom-Lua.cpp
  *
+ * Copyright (c) 2015 - Ben Hallstein - ben.am
+ * Published under the MIT license - http://opensource.org/licenses/MIT
+ *
  */
 
 #include "Diatom-Lua.h"
 #include "lua.hpp"
 
-std::string __floatFmt(double x) {
+using Str = std::string;
+
+Str __floatFmt(double x) {
 	char s[100];
 	for (int i=0; i < 100; ++i) s[i] = '0';
 	sprintf(s, "%.17f", x);
@@ -16,18 +21,18 @@ std::string __floatFmt(double x) {
 	if (s[i] == '.') s[i] = '\0';
 	else             s[i+1] = '\0';
 	
-	return std::string(s);
+	return Str(s);
 }
 
-std::string __d_to_s(Diatom &d) {
+Str __d_to_s(Diatom &d) {
 	if (d.isNumber()) return __floatFmt(d.number_value());
-	if (d.isString()) return std::string("\"") + d.str_value() + "\"";
+	if (d.isString()) return Str("\"") + d.str_value() + "\"";
 	if (d.isBool())   return (d.bool_value() ? "true" : "false");
 	return "";
 }
 
-std::string __reindent_lua_str(const std::string &s) {
-	std::string t;
+Str __reindent_lua_str(const Str &s) {
+	Str t;
 	int indentLevel = 0;
 	bool insideString = false;
 
@@ -53,20 +58,17 @@ std::string __reindent_lua_str(const std::string &s) {
 	return t;
 }
 
-std::string __diatomToLua(Diatom &d) {
-	std::string s;
-	s += "{";
+Str __diatomToLua(Diatom &d) {
+	Str s = "{";
 	int n_desc = 0;
 	for (auto &i : d.descendants()) {
 		if (i.second.isNil()) continue;
 		++n_desc;
-		s += std::string("\n") + i.first + std::string(" = ");
+		s += Str("\n") + i.first + Str(" = ");
 		if (i.second.isTable()) s += __diatomToLua(i.second);
 		else                    s += __d_to_s(i.second);
 		if (i.first != d.descendants().rbegin()->first)
 			s += ",";
-		else
-			s += "";
 	}
 	if (n_desc > 0) s += "\n}";
 	else s += " }";
@@ -78,8 +80,8 @@ bool __dlua_IsSimpleType(lua_State *L, int ind) {
 	int t = lua_type(L, ind);
 	return (t == LUA_TNUMBER || t == LUA_TBOOLEAN || t == LUA_TSTRING);
 }
-std::string __dlua_SimpleTypeToString(lua_State *L, int ind) {
-	std::string s;
+Str __dlua_SimpleTypeToString(lua_State *L, int ind) {
+	Str s;
 	int t = lua_type(L, ind);
 	if (t == LUA_TBOOLEAN)     s = lua_toboolean(L, ind) ? "true" : "false";
 	else if (t == LUA_TNUMBER) s = std::to_string(lua_tonumber(L, ind));
@@ -125,17 +127,16 @@ bool __dlua_execute(lua_State **L, const char *identifier) {
 	}
 	return !runError;
 }
-bool __dlua_loadLuaFile(const std::string &filename, lua_State **L) {
+bool __dlua_loadLuaFile(const Str &filename, lua_State **L) {
 	__dlua_loadFile_Int(filename.c_str(), L);
 	return (*L == NULL ? false : __dlua_execute(L, filename.c_str()));
 }
-bool __dlua_loadLuaString(const std::string &string, lua_State **L) {
+bool __dlua_loadLuaString(const Str &string, lua_State **L) {
 	__dlua_loadString_Int(string.c_str(), L);
 	return (*L == NULL ? false : __dlua_execute(L, "[loaded from string]"));
 }
 
 Diatom __luaToDiatom(lua_State *L) {
-	using std::string;
 	if (!L) return Diatom::NilObject();
 	
 	// If we are a simple type, just set type & value
@@ -153,7 +154,7 @@ Diatom __luaToDiatom(lua_State *L) {
 		while (lua_next(L, -2)) {		// S: value, key, X
 			Diatom desc = __luaToDiatom(L);
 			if (!desc.isNil() && __dlua_IsSimpleType(L, -2)) {
-				std::string descName = __dlua_SimpleTypeToString(L, -2);
+				Str descName = __dlua_SimpleTypeToString(L, -2);
 				d[descName] = desc;
 			}
 			lua_pop(L, 1);				// S: key, X
@@ -167,14 +168,14 @@ Diatom __luaToDiatom(lua_State *L) {
 
 #pragma mark - diatomToLua
 
-std::string diatomToLua(Diatom &d) {
+Str diatomToLua(Diatom &d) {
 	return d.isTable() ? __reindent_lua_str(__diatomToLua(d)) : __d_to_s(d);
 }
 
 
 #pragma mark - luaToDiatom
 
-Diatom luaToDiatom(const std::string &filename, const std::string &objectname) {
+Diatom luaToDiatom(const Str &filename, const Str &objectname) {
 	lua_State *L;
 	Diatom d = Diatom::NilObject();
 	if (__dlua_loadLuaFile(filename, &L)) {

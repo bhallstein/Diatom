@@ -1,0 +1,10 @@
+clang++ -std=c++11    \
+  test.cpp            \
+  ../Diatom.cpp          \
+  ../Diatom-Lua.cpp      \
+  ../Diatom-Storage.cpp  \
+  -I .. \
+  -I ../../L-Serialize/lua-5.2.1/src/   \
+  -L ../../L-Serialize/lua-5.2.1/       \
+  -lLua-x86_64-O3
+  
