@@ -17,7 +17,7 @@ LuaObj is a class for fetching tables of objects of basic types from lua.
 	- `bool bool_value`
 	- `std::string str_value`
 - LuaObj turns all table keys into strings
-- The descendants map is sorted by the Numericoid String Comparator, i.e. '10zxc is sorted after '1zxc'.
+- The descendants map is sorted by the Numericoid String Comparator, i.e. '10zxc' is sorted after '1zxc'.
 
 See the .h for further details.
 
