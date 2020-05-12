@@ -43,12 +43,12 @@ std::string __reindent_lua_str(const std::string &s) {
 std::string __diatomToLua(Diatom &d) {
 	std::string s;
 	s += "{\n";
-	for (auto &i : d._descendants) {
+	for (auto &i : d.descendants()) {
 		if (i.second.isNil()) continue;
 		s += i.first + std::string(" = ");
 		if (i.second.isTable()) s += __diatomToLua(i.second);
 		else                    s += __d_to_s(i.second);
-		if (i.first != d._descendants.rbegin()->first)
+		if (i.first != d.descendants().rbegin()->first)
 			s += ",\n";
 		else
 			s += "\n";

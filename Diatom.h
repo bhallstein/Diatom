@@ -90,8 +90,6 @@ private:
 		// Clone 'from' onto 'to'.
 		//  - Deals with the conditional memory de/allocation requirements of the union.
 		//  - If 'to' is not initialized yet, set final param to false (i.e. in copy constructor).
-	
-	friend std::string __diatomToLua(Diatom &);
 };
 
 #endif
