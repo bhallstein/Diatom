@@ -1,3 +1,9 @@
+// clang++ -std=c++11    \
+// 	  test.cpp LuaObj.cpp                   \
+// 	  -I ../../L-Serialize/lua-5.2.1/src/   \
+// 	  -L ../../L-Serialize/lua-5.2.1/       \
+// 	  -lLua-x86_64-O3
+
 #include "LuaObj.h"
 #include "lua.hpp"
 #include <cassert>
