@@ -14,7 +14,7 @@
 
 bool __luaobj_IsSimpleType(lua_State *L, int ind) {
 	return (lua_isnumber(L, ind) || lua_isboolean(L, ind) || lua_isstring(L, ind));
-} 
+}
 std::string __luaobj_SimpleTypeToString(lua_State *L, int ind) {
 	std::string s;
 	if (lua_isboolean(L, ind))
@@ -28,33 +28,48 @@ std::string __luaobj_SimpleTypeToString(lua_State *L, int ind) {
 		s = lua_tostring(L, ind);
 	return s;
 }
-bool __luaobj_luaLoad(const std::string &filename, lua_State **L) {
-	*L = luaL_newstate();
-	bool loadError = luaL_loadfile(*L, filename.c_str());
-	if (loadError) {
-		printf(
-			"Couldn't open lua file '%s' - error was: %s\n",
-				filename.c_str(),
-				lua_tostring(*L, -1)
-		);
-		lua_close(*L);
-		return false;
-	}
-	bool runError = lua_pcall(*L, 0, 0, 0);
-	if (runError) {
-		printf(
-			"Couldn't execute file '%s' - error was: %s\n",
-				filename.c_str(),
-				lua_tostring(*L, -1)
-		);
-		lua_close(*L);
-		return false;
-	}
-	return true;
-}
 template <typename T>
 bool __luaobj_strToT(T &t, const std::string &s) {
 	return !(std::istringstream(s) >> t).fail();
+}
+
+void __luaobj_loadFile(const char *fname, lua_State **L) {
+	*L = luaL_newstate();
+	bool loadError = luaL_loadfile(*L, fname);
+	if (loadError) {
+		printf(
+			   "Couldn't open lua file '%s' - error was: %s\n",
+			   fname,
+			   lua_tostring(*L, -1)
+			   );
+		lua_close(*L);
+		*L = NULL;
+	}
+}
+void __luaobj_loadString(const char *str, lua_State **L) {
+	*L = luaL_newstate();
+	bool loadError = luaL_loadstring(*L, str);
+	if (loadError) {
+		printf(
+			   "Couldn't open lua string '%s' - error was: %s\n",
+			   str,
+			   lua_tostring(*L, -1)
+			   );
+		lua_close(*L);
+		*L = NULL;
+	}
+}
+bool __luaobj_execute(lua_State **L, const char *identifier) {
+	bool runError = lua_pcall(*L, 0, 0, 0);
+	if (runError) {
+		printf(
+			   "Couldn't execute lua '%s' - error was: %s\n",
+			   identifier,
+			   lua_tostring(*L, -1)
+			   );
+		lua_close(*L);
+	}
+	return !runError;
 }
 
 
@@ -75,21 +90,31 @@ bool NumericoidStringComparator::operator()(const std::string &a, const std::str
 
 LuaObj LuaObj::_nilobject;
 
-LuaObj::LuaObj(std::string filename, std::string objectname) :
-	type(Type::Nil)
+LuaObj::LuaObj(const std::string &filename, const std::string &objectname) :
+	type(Type::_Nil)
 {
 	lua_State *L;
-	if (__luaobj_luaLoad(filename, &L)) {
+	if (loadLuaFile(filename, &L)) {
 		lua_getglobal(L, objectname.c_str());
 		load(L);
 		lua_close(L);
 	}
 }
 LuaObj::LuaObj(lua_State *L) :
-	type(Type::Nil)
+	type(Type::_Nil)
 {
 	load(L);
 }
+
+bool LuaObj::loadLuaFile(const std::string &filename, lua_State **L) {
+	__luaobj_loadFile(filename.c_str(), L);
+	return (*L == NULL ? false : __luaobj_execute(L, filename.c_str()));
+}
+bool LuaObj::loadLuaString(const std::string &string, lua_State **L) {
+	__luaobj_loadString(string.c_str(), L);
+	return (*L == NULL ? false : __luaobj_execute(L, "[loaded from string]"));
+}
+
 
 void LuaObj::load(lua_State *L)
 {
@@ -120,7 +145,7 @@ void LuaObj::load(lua_State *L)
 		while (lua_next(L, -2)) {		// S: value, key, X
 			LuaObj desc;
 			desc.load(L);
-			if (desc.type != Type::Nil && __luaobj_IsSimpleType(L, -2)) {
+			if (desc.type != Type::_Nil && __luaobj_IsSimpleType(L, -2)) {
 				std::string descName = __luaobj_SimpleTypeToString(L, -2);
 				descendants.insert(_descendantmap::value_type(descName, desc));
 			}
@@ -147,12 +172,12 @@ std::string LuaObj::_print() const {
 		type == Type::Numeric ? "number" :
 		type == Type::Bool ? "bool" :
 		type == Type::String ? "string" :
-		type == Type::Nil ? "nil" : "unknown"
+		type == Type::_Nil ? "nil" : "unknown"
 	);
 	
 	if (type == Type::Table)
 		ss << " n_descendants: " << descendants.size();
-	else if (type != Type::Nil) {
+	else if (type != Type::_Nil) {
 		ss << " value: ";
 		if (type == Type::Numeric) ss << number_value;
 		else if (type == Type::String) ss <<  str_value;
@@ -174,7 +199,8 @@ void reindentLuaString(std::string &s) {
 	for (auto it = s.begin(), str_begin = s.begin(), str_end = s.end(); it != str_end; ++it) {
 		bool last  = (it+1 == str_end);
 		bool first = (it == str_begin);
-		char c = *it, cp, cn;
+		char c = *it, cp = ' ', cn = ' ';
+		
 		if (!first) cp = *(it-1);
 		if (!last) cn = *(it+1);
 		
@@ -185,9 +211,9 @@ void reindentLuaString(std::string &s) {
 		if (!last && cn == '}' && !insideString) --indentLevel;
 		
 		t += c;
-		if (c == '\n' && !insideString) {
-			for (int i=0; i < indentLevel; ++i) t += "\t";
-		}
+		if (c == '\n' && !insideString)
+			for (int i=0; i < indentLevel; ++i)
+				t += "    ";
 	}
 	s = t;
 }

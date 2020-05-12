@@ -14,10 +14,11 @@ The constructor simply takes a filename and the name of the (global) object to l
 
 Alternatively, you can construct a LuaObj from an already-loaded script. First push the table to position -1 on the stack, then pass the state object:
 
-    lua_State *L = load(...);
-    lua_getglobal(L, "a_table");
-    
-    LuaObj myObj(L);
+    lua_State *L;
+    if (LuaObj::loadLuaFile("file.lua", &L)) {
+        lua_getglobal(L, "a_table");
+        LuaObj myObj(L);
+    }
 
 
 ## Types & Values

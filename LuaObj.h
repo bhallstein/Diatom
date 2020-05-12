@@ -22,11 +22,14 @@ class lua_State;
 
 class LuaObj {
 public:
-	LuaObj(std::string filename, std::string objectName);
+	LuaObj(const std::string &filename, const std::string &objectName);
 	LuaObj(lua_State *);	// Load from the table at -1 on the Lua stack
 	
+	static bool loadLuaFile(const std::string &filename, lua_State **);
+	static bool loadLuaString(const std::string &string, lua_State **);
+	
 	struct Type {
-		enum T { Numeric, Bool, String, Table, Nil };
+		enum T { Numeric, Bool, String, Table, _Nil };
 	};
 	Type::T type;
 	
@@ -45,10 +48,10 @@ public:
 	bool isNumber() { return type == Type::Numeric; }
 	bool isString() { return type == Type::String; }
 	bool isBool()   { return type == Type::Bool; }
-	bool isNil()    { return type == Type::Nil; }
+	bool isNil()    { return type == Type::_Nil; }
 	
 private:
-	LuaObj() : type(Type::Nil) { }		// Create an empty/nil LuaObj
+	LuaObj() : type(Type::_Nil) { }		// Create an empty/nil LuaObj
 	
 	void load(lua_State *);				// Populate recursively from lua stack
 	
