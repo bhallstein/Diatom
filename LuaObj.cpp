@@ -52,21 +52,22 @@ bool __luaobj_luaLoad(const std::string &filename, lua_State **L) {
 	}
 	return true;
 }
+template <typename T>
+bool __luaobj_strToT(T &t, const std::string &s) {
+	return !(std::istringstream(s) >> t).fail();
+}
 
 
 #pragma mark - NumericoidStringComparator
 
 bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) const {
 	double x, y;
-	bool a_numeric = _strToT(x, a), b_numeric = _strToT(y, b);
+	bool a_numeric = __luaobj_strToT(x, a);
+	bool b_numeric = __luaobj_strToT(y, b);
 	if (a_numeric && !b_numeric) return true;
 	else if (!a_numeric && b_numeric) return false;
 	else if (a_numeric && b_numeric) return (x < y);
 	return (a < b);
-}
-template <typename T>
-bool NumericoidStringComparator::_strToT(T &t, const std::string &s) {
-	return !(std::istringstream(s) >> t).fail();
 }
 
 
