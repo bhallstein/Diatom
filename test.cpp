@@ -1,14 +1,22 @@
-// clang++ -std=c++11      \
-// 	  test.cpp Diatom.cpp  \
-//    -DLUAOBJ_PRINT
+/*
+clang++ -std=c++11  \
+  test.cpp          \
+  Diatom.cpp        \
+  Diatom-Lua.cpp    \
+  -I ../L-Serialize/lua-5.2.1/src/   \
+  -L ../L-Serialize/lua-5.2.1/       \
+  -lLua-x86_64-O3
+*/
 
 #include "Diatom.h"
+#include "Diatom-Lua.h"
 #include <cassert>
+#include <unistd.h>
 
-#define p_assert(x) do {        \
+#define p_assert(x) do {             \
 		printf("TEST: %38s", #x);    \
-		assert(x);              \
-		printf(" - PASS :)\n"); \
+		assert(x);                   \
+		printf(" - PASS :)\n");      \
 	} while (false)
 
 #define p_header(s) do {                               \
@@ -55,25 +63,45 @@ void testDiatom() {
 	p_assert(nil1.isNil());
 	p_assert(&nil1 != &nil2);
 	
-	printf("- Testing Tables\n");
+	printf("- Testing tables\n");
 	Diatom tl_1;
 	p_assert(tl_1.isTable());
 	p_assert(tl_1["penguins"].isNil());
 	tl_1["monkeys"] = (double) 12;
 	tl_1["custard"] = "lemons";
-	p_assert(tl_1.descendants().size() == 3);
+	tl_1["bananalike"] = false;
+	p_assert(tl_1.descendants().size() == 4);
 	p_assert(tl_1["monkeys"].isNumber());
 	p_assert(tl_1["custard"].isString());
+	p_assert(tl_1["bananalike"].isBool());
 	
-	printf("- Testing table copyiing\n");
+	printf("- Testing table copying\n");
 	tl_1["russians"] = Diatom();
 	tl_1["russians"]["nikolai"] = 12.4;
 	tl_1["russians"]["mikhail"] = "Gorbachev";
-	p_assert(tl_1["russians"].descendants().size() == 2);
-	
 	Diatom tl_2 = tl_1;
-	p_assert(tl_2["russians"]["nikolai"].number_value() == 12.4);
-	p_assert(&(tl_2["russians"]["mikhail"]) != &(tl_1)["russians"]["mikhail"]);
+	Diatom nikolai = tl_2["russians"]["nikolai"];
+	Diatom mikhail = tl_2["russians"]["mikhail"];
+	Diatom *p_mikhail_1 = &(tl_1["russians"]["mikhail"]);
+	Diatom *p_mikhail_2 = &(tl_2["russians"]["mikhail"]);
+	p_assert(nikolai.number_value() == 12.4);
+	p_assert(mikhail.str_value() == "Gorbachev");
+	p_assert(p_mikhail_1 != p_mikhail_2);
+	
+	printf("- Testing serialization\n");
+	tl_1["francais"] = Diatom();
+	tl_1["francais"]["jacques"] = "Chirac";
+	{ /* Serialize to tmp file */
+		std::string ser = std::string("testykins = ") + diatomToLua(tl_1);
+	    FILE *fp = fopen("/tmp/diatom-test.lua", "w");
+		p_assert(fp != NULL);
+        fputs(ser.c_str(), fp);
+        fclose(fp);
+	}
+	Diatom d_ser = luaToDiatom("/tmp/diatom-test.lua", "testykins");
+	unlink("/tmp/diatom-test.lua");
+	Diatom nikolai2 = d_ser["russians"]["nikolai"];
+	p_assert(nikolai2.number_value() == 12.4);
 	
 	printf("\n");
 }

@@ -14,7 +14,7 @@ d.isNumber();    // => true
 double exp = d.number_value();    // exp == 2.718
 ```
 
-Instead of holding values, a *table* Diatom has a set of named descendants, which are other diatoms, which are indexed by string:
+Instead of representing a numeric, bool or string value, a *table* Diatom has a set of named descendants, which are other Diatoms, which are indexed by string:
 
 ```cpp
 Diatom d;
@@ -27,24 +27,23 @@ table_diatom["exp"].number_value();    // => 2.718
 
 ## Copyability & Immutability
 
-All Diatoms can be copied, including tables, which will deep-copy.
+All Diatoms can be copied, including tables, which deep-copy.
 
 Diatoms are semi-immutable – their values cannot be set directly after construction. However, they can be altered by copying from another Diatom:
 
 ```cpp
 Diatom d1(3.14);
-Diatom d2("Archaeteuthis");
-d1 = d2;
-d1.str_value();    // => "To be or not to be"
+d1 = Diatom("Architeuthis");
+d1.str_value();    // => "Architeuthis"
 ```
 
-The following syntactic sugar is available:
+Simple assignment is possible, due to implicit conversion – consider this syntactic sugar:
 
 ```cpp
 d1 = "Archaeteuthis";
 ```
     
-Here, C++ constructs a temporary Diatom to hold the string, and calls d1’s `operator=`, copying the temporary into d1, which is now a string Diatom.
+Here, C++ constructs a temporary Diatom from the C string, then calls d1’s `operator=`, copying the temporary into d1, which is now a string Diatom.
 
 
 ## However, tables are mutable
@@ -89,7 +88,7 @@ isString()
 isNil()
 ```
 
-These should be self-explanatory.
+These are self-explanatory, hopefully.
 
 ```cpp
 Diatom::Type::T type()

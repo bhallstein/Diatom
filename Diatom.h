@@ -91,35 +91,7 @@ private:
 		//  - Deals with the conditional memory de/allocation requirements of the union.
 		//  - If 'to' is not initialized yet, set final param to false (i.e. in copy constructor).
 	
-public:
-#ifdef DIATOM_PRINT
-	void _print(int indentLevel = 0) const {
-		printf("%s:",
-			isTable()   ? "table" :
-			isNumber()  ? "number" :
-			isBool()    ? "bool" :
-			isString()  ? "string" :
-			isNil()     ? "nil" : "unknown");
-	
-		if (isTable()) {
-			printf(" n_descendants: %lu\n", _descendants.size());
-			indentLevel++;
-			for (auto &i : _descendants) {
-				for (int i=0; i < indentLevel; ++i)
-					printf("    ");
-				printf("%s - ", i.first.c_str());
-				i.second._print(indentLevel);
-			}
-		}
-		else if (!isNil()) {
-			printf(" value: ");
-			if (isNumber()) printf("%f", _number_value);
-			else if (isString()) printf("%s", _str_value.c_str());
-			else printf("%s", _bool_value ? "true" : "false");
-			printf("\n");
-		}
-	}
-#endif
+	friend std::string __diatomToLua(Diatom &);
 };
 
 #endif
