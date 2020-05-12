@@ -52,6 +52,8 @@ int main() {
 		lua_getglobal(L, "another_table");
 		LuaObj o3 = LuaObj(L);
 		lua_pop(L, 1);
+		
+		lua_close(L);
     }
 	
 	return 0;

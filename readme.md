@@ -12,7 +12,7 @@ The constructor simply takes a filename and the name of the (global) object to l
 - If the object is a table, the `descendants` map is populated recursively with the contents of the table.
 - If the object is a supported simple type, it is represented in the appropriate LuaObj property.
 
-Alternatively, you can construct a LuaObj from an already-loaded script. First push the table to position -1 on the stack, then pass the state object:
+Alternatively, you can construct a LuaObj from a Lua state that you manage yourself. You just need to push the table you want to load to position -1 on the stack:
 
     lua_State *L;
     if (!LuaObj::loadLuaFile("file.lua", &L))
@@ -21,6 +21,8 @@ Alternatively, you can construct a LuaObj from an already-loaded script. First p
     lua_getglobal(L, "a_table");
     LuaObj myObj(L);
     lua_pop(L, 1);
+    
+    lua_close(L);
 
 
 ## Types & Values
