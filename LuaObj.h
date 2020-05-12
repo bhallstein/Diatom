@@ -14,8 +14,6 @@
 #ifndef __W__LuaObj
 #define __W__LuaObj
 
-#include "types.h"
-
 #include "lua.hpp"
 
 #include <iostream>

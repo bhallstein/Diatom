@@ -75,10 +75,6 @@ LuaObj::LuaObj(lua_State *L) : type(ValueType::NIL)
 /* LuaObj implementation */
 
 LuaObj& LuaObj::operator[] (const char *s) {
-	if (type != ValueType::TABLE)
-		throw W::Exception(
-			std::string("operator[] called on non-table LuaObj (") + _print() + std::string(")")
-		);
 	_descendantmap::iterator it = descendants.find(s);
 	return (it == descendants.end() ? _nilobject : it->second);
 }
