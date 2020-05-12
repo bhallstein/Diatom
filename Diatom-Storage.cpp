@@ -121,7 +121,7 @@ Diatom diatomFromString(const Str &str) {
 	};
  	
 	auto getToken = [&](Str &input) {
-		int i, n = input.size();
+		int i, n = (int)input.size();
 		if (n == 0) return Token(Token::EndOfString);
 		
 		char c = input[0];
@@ -310,7 +310,7 @@ Diatom diatomFromString(const Str &str) {
 						return Diatom::NilObject();
 					}
 					state.indentType       = (c == ' ' ? State::IndentSpace : State::IndentTab);
-					state.indentNum        = t.s.size();
+					state.indentNum        = (int) t.s.size();
 					state.indentDiscovered = true;
 				}
 				
@@ -417,7 +417,7 @@ Diatom diatomFromFile(const Str &filename) {
 	
 	char chunk[129];
 	int n_bytes_read;
-	while ((n_bytes_read = fread(chunk, 1, 128, fp)) > 0) {
+	while ((n_bytes_read = (int)fread(chunk, 1, 128, fp)) > 0) {
 		chunk[n_bytes_read] = '\0';
 		s += chunk;
 	}

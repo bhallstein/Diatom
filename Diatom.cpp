@@ -26,9 +26,8 @@ Vec __str_to_chunks(const Str &s) {
 	bool exp_numeric = CH_NUMERIC(s[0]);
 	Str cur;
 	for (auto c : s)
-		if (CH_NUMERIC(c) == exp_numeric) {
+		if (CH_NUMERIC(c) == exp_numeric)
 			cur += c;
-		}
 		else {
 			chunkz.push_back({exp_numeric, cur});
 			cur = "";
@@ -44,13 +43,8 @@ bool __chunkLessThan_AtIndex(const Vec &v1, const Vec &v2, int i) {
 	bool i1_gtr = (i >= v1.size());
 	bool i2_gtr = (i >= v2.size());
 	
-	// If i1 is past the end of V1 but V2 has further sections, V1 orders before V2 
-	if (i1_gtr) {
-		if (i2_gtr) return false;
-		else return true;
-	}
-	if (i2_gtr)
-		return false;
+	// If i1 is past the end of V1 but V2 has further sections, V1 orders before V2, & vice versa
+	if (i1_gtr != i2_gtr) return i1_gtr;
 	
 	const __SortChunkEntry &x1 = v1[i];
 	const __SortChunkEntry &x2 = v2[i];
@@ -69,22 +63,21 @@ bool __chunkLessThan_AtIndex(const Vec &v1, const Vec &v2, int i) {
 }
 
 bool Diatom::NumericStringComparator::operator() (const Str &a, const Str &b) const {
-		Vec v1 = __str_to_chunks(a);
-		Vec v2 = __str_to_chunks(b);
-		
-		int i, n;
-		{
-			int l1 = v1.size(), l2 = v2.size();
-			n = (l1 > l2 ? l1 : l2);
-		}
-		
-		for (i=0; i < n; ++i)
-			if (__chunkLessThan_AtIndex(v1, v2, i))
-				return true;
-		
-		return false;
+	Vec v1 = __str_to_chunks(a);
+	Vec v2 = __str_to_chunks(b);
+	
+	int i, n;
+	{
+		int l1 = (int)v1.size(), l2 = (int)v2.size();
+		n = (l1 > l2 ? l1 : l2);
 	}
-;
+	
+	for (i=0; i < n; ++i)
+		if (__chunkLessThan_AtIndex(v1, v2, i))
+			return true;
+	
+	return false;
+}
 
 
 #pragma mark - Diatom
@@ -114,8 +107,8 @@ void Diatom::clone(const Diatom &from, Diatom *to, bool to_needs_cleanup) {
 	*_type_unsafe = from._type;
 
 	switch (to->_type) {
-		case Type::String: new (&to->_str_value) Str(from._str_value); break;
-		case Type::Table:  new (&to->_descendants) _descendantmap(from._descendants); break;
+		case Type::String:  new (&to->_str_value) Str(from._str_value); break;
+		case Type::Table:   new (&to->_descendants) _descendantmap(from._descendants); break;
 		case Type::Number:  to->_number_value = from._number_value; break;
 		case Type::Bool:    to->_bool_value = from._bool_value; break;
 		default: break;
