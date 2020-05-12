@@ -12,18 +12,25 @@ The constructor simply takes a filename and the name of the (global) object to l
 - If the object is a table, the `descendants` map is populated recursively with the contents of the table.
 - If the object is a supported simple type, it is represented in the appropriate LuaObj property.
 
+Alternatively, you can construct a LuaObj from an already-loaded script. First push the table to position -1 on the stack, then pass the state object:
+
+    lua_State *L = load(...);
+    lua_getglobal(L, "a_table");
+    
+    LuaObj myObj(L);
+
 
 ## Types & Values
 
 A LuaObj may represent a table containing other values, or a number, string, bool, or nil. The type is stored in the object’s `type` property, and is one of the enum `LuaObj::Type::T` values, `Numeric`, `Bool`, `String`, `Table`, or `Nil`.
 
-The represented value itself is stored in another property – depending on type, `float number_value`, `bool bool_value`, or `std::string str_value`.
+The represented value itself is stored in another property – depending on type, `double number_value`, `bool bool_value`, or `std::string str_value`.
 
     if (myObj.type == LuaObj::Type::Table)
         ; // iterate its descendants, perhaps
     
     if (myObj.type == LuaObj::Type::Numeric)
-        float f = myObj.number_value;
+        double f = myObj.number_value;
 
 
 ## Accessing Descendants

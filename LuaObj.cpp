@@ -1,13 +1,8 @@
 /*
  * LuaObj.cpp - RLTG implementation
  *
- * Copyright (C) 2012 Ben Hallstein
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Copyright (c) 2012 - Ben Hallstein - ben.am
+ * Published under the MIT license - http://opensource.org/licenses/MIT
  *
  */
 
@@ -17,10 +12,10 @@
 
 #pragma mark Helpers
 
-bool __lhIsSimpleType(lua_State *L, int ind) {
+bool __luaobj_IsSimpleType(lua_State *L, int ind) {
 	return (lua_isnumber(L, ind) || lua_isboolean(L, ind) || lua_isstring(L, ind));
 } 
-std::string __lhSimpleTypeToString(lua_State *L, int ind) {
+std::string __luaobj_SimpleTypeToString(lua_State *L, int ind) {
 	std::string s;
 	if (lua_isboolean(L, ind))
 		s = lua_toboolean(L, ind) ? "true" : "false";
@@ -33,7 +28,7 @@ std::string __lhSimpleTypeToString(lua_State *L, int ind) {
 		s = lua_tostring(L, ind);
 	return s;
 }
-bool __luaLoad(const std::string &filename, lua_State **L) {
+bool __luaobj_luaLoad(const std::string &filename, lua_State **L) {
 	*L = luaL_newstate();
 	bool loadError = luaL_loadfile(*L, filename.c_str());
 	if (loadError) {
@@ -62,7 +57,7 @@ bool __luaLoad(const std::string &filename, lua_State **L) {
 #pragma mark - NumericoidStringComparator
 
 bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) const {
-	float x, y;
+	double x, y;
 	bool a_numeric = _strToT(x, a), b_numeric = _strToT(y, b);
 	if (a_numeric && !b_numeric) return true;
 	else if (!a_numeric && b_numeric) return false;
@@ -83,11 +78,16 @@ LuaObj::LuaObj(std::string filename, std::string objectname) :
 	type(Type::Nil)
 {
 	lua_State *L;
-	if (__luaLoad(filename, &L)) {
+	if (__luaobj_luaLoad(filename, &L)) {
 		lua_getglobal(L, objectname.c_str());
 		load(L);
 		lua_close(L);
 	}
+}
+LuaObj::LuaObj(lua_State *L) :
+	type(Type::Nil)
+{
+	load(L);
 }
 
 void LuaObj::load(lua_State *L)
@@ -97,7 +97,7 @@ void LuaObj::load(lua_State *L)
 	if (!L) return;
 	
 	// If we are a simple type, just set type & value
-	if (__lhIsSimpleType(L, -1)) {
+	if (__luaobj_IsSimpleType(L, -1)) {
 		if (lua_isboolean(L, -1)) {
 			type = Type::Bool;
 			bool_value = lua_toboolean(L, -1);
@@ -119,8 +119,8 @@ void LuaObj::load(lua_State *L)
 		while (lua_next(L, -2)) {		// S: value, key, X
 			LuaObj desc;
 			desc.load(L);
-			if (desc.type != Type::Nil && __lhIsSimpleType(L, -2)) {
-				std::string descName = __lhSimpleTypeToString(L, -2);
+			if (desc.type != Type::Nil && __luaobj_IsSimpleType(L, -2)) {
+				std::string descName = __luaobj_SimpleTypeToString(L, -2);
 				descendants.insert(_descendantmap::value_type(descName, desc));
 			}
 			lua_pop(L, 1);				// S: key, X
