@@ -10,7 +10,7 @@ The constructor simply takes a filename and the name of the (global) object to l
     LuaObj myObj("file.lua", "a_table");
 
 - If the object is a table, the `descendants` map is populated recursively with the contents of the table.
-- If the object is a supported type, 
+- If the object is a supported simple type, it is represented in the appropriate LuaObj property.
 
 
 ## Types & Values
