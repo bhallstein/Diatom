@@ -1,8 +1,8 @@
 // clang++ -std=c++11      \
-// 	  test.cpp LuaObj.cpp  \
+// 	  test.cpp Diatom.cpp  \
 //    -DLUAOBJ_PRINT
 
-#include "LuaObj.h"
+#include "Diatom.h"
 #include <cassert>
 
 #define p_assert(x) do {        \
@@ -20,41 +20,41 @@
 	} while (false)
 
 
-void testLuaObj();
+void testDiatom();
 
 int main() {
-	testLuaObj();
+	testDiatom();
 	return 0;
 }
 
 
-void testLuaObj() {
-	p_header("Testing LuaObj");
+void testDiatom() {
+	p_header("Testing Diatom");
 	
 	printf("- Testing Numbers\n");
-	LuaObj nl_1((double) 5), nl_2(7.42);
+	Diatom nl_1((double) 5), nl_2(7.42);
 	p_assert(nl_1.isNumber() && nl_2.isNumber());
 	p_assert(nl_1.number_value() == 5.0);
 	p_assert(nl_2.number_value() == 7.42);
 	
 	printf("- Testing Booleans\n");
-	LuaObj bl(false);
+	Diatom bl(false);
 	p_assert(bl.isBool());
 	p_assert(bl.bool_value() == false);
 	
 	printf("- Testing Strings\n");
 	std::string s = "Who would fardels bear";
-	LuaObj sl_1(s), sl_2(s.c_str());
+	Diatom sl_1(s), sl_2(s.c_str());
 	p_assert(sl_1.isString() && sl_2.isString());
 	p_assert(sl_1.str_value() == s);
 	p_assert(sl_2.str_value() == s);
 	
 	printf("- Testing Nil\n");
-	LuaObj nill = LuaObj::NilObject();
+	Diatom nill = Diatom::NilObject();
 	p_assert(nill.isNil());	
 	
 	printf("- Testing Tables\n");
-	LuaObj tl_1;
+	Diatom tl_1;
 	p_assert(tl_1.isTable());
 	p_assert(tl_1["penguins"].isNil());
 	tl_1["monkeys"] = (double) 12;
@@ -64,13 +64,14 @@ void testLuaObj() {
 	p_assert(tl_1["custard"].isString());
 	
 	printf("- Testing table copyiing\n");
-	tl_1["russians"] = LuaObj();
+	tl_1["russians"] = Diatom();
 	tl_1["russians"]["nikolai"] = 12.4;
 	tl_1["russians"]["mikhail"] = "Gorbachev";
 	p_assert(tl_1["russians"].descendants().size() == 2);
 	
-	LuaObj tl_2 = tl_1;
+	Diatom tl_2 = tl_1;
 	p_assert(tl_2["russians"]["nikolai"].number_value() == 12.4);
 	p_assert(&(tl_2["russians"]["mikhail"]) != &(tl_1)["russians"]["mikhail"]);
 	
+	printf("\n");
 }

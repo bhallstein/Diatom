@@ -1,28 +1,30 @@
 /*
- * LuaObj.cpp - RLTG implementation
+ * Diatom.cpp - RLTG implementation
  *
  * Copyright (c) 2012 - Ben Hallstein - ben.am
  * Published under the MIT license - http://opensource.org/licenses/MIT
  *
  */
 
-#include "LuaObj.h"
+#include "Diatom.h"
 #include <sstream>
 
 #pragma mark Helpers
 
 template <typename T>
-bool __luaobj_strToT(T &t, const std::string &s) {
+bool __diatom_strToT(T &t, const std::string &s) {
 	return !(std::istringstream(s) >> t).fail();
 }
 
 
 #pragma mark - NumericoidStringComparator
 
-bool NumericoidStringComparator::operator()(const std::string &a, const std::string &b) const {
+bool Diatom::NumericoidStringComparator::operator()(
+	const std::string &a, const std::string &b
+) const {
 	double x, y;
-	bool a_numeric = __luaobj_strToT(x, a);
-	bool b_numeric = __luaobj_strToT(y, b);
+	bool a_numeric = __diatom_strToT(x, a);
+	bool b_numeric = __diatom_strToT(y, b);
 	if (a_numeric && !b_numeric) return true;
 	else if (!a_numeric && b_numeric) return false;
 	else if (a_numeric && b_numeric) return (x < y);
@@ -30,21 +32,21 @@ bool NumericoidStringComparator::operator()(const std::string &a, const std::str
 }
 
 
-#pragma mark - LuaObj
+#pragma mark - Diatom
 
-LuaObj LuaObj::_nilobject = LuaObj(MrNil());
+Diatom Diatom::_nilobject = Diatom(MrNil());
 
 
-LuaObj& LuaObj::operator[] (const char *s) {
+Diatom& Diatom::operator[] (const char *s) {
 	auto it = _descendants.find(s);
 	if (it == _descendants.end()) return _descendants[s] = _nilobject;
 	return it->second;
 }
-LuaObj& LuaObj::operator[] (const std::string &s) {
+Diatom& Diatom::operator[] (const std::string &s) {
 	return (*this)[s.c_str()];
 }
 
-void LuaObj::clone(const LuaObj &from, LuaObj *to, bool to_needs_cleanup) {
+void Diatom::clone(const Diatom &from, Diatom *to, bool to_needs_cleanup) {
 	using std::string;
 	
 	if (to_needs_cleanup) {

@@ -1,61 +1,63 @@
 /*
- * LuaObj.h - RLTG implementation
+ * Diatom.h - RLTG implementation
  *
  * Copyright (c) 2012 - Ben Hallstein - ben.am
+ * - Converted from lua-specific to generic table object on 18.4.2015
+ *   on the train from Kolding to Copenhagen.
+ * 
  * Published under the MIT license - http://opensource.org/licenses/MIT
  *
  */
 
-#ifndef __LuaObj_h
-#define __LuaObj_h
+#ifndef __Diatom_h
+#define __Diatom_h
 
 #include <map>
 #include <string>
 
 
-struct NumericoidStringComparator {
-	bool operator() (const std::string &a, const std::string &b) const;
-};
-
-
-class LuaObj {
+class Diatom {
+private:
+	struct NumericoidStringComparator {
+		bool operator() (const std::string &a, const std::string &b) const;
+	};
 public:
 	struct Type {
 		enum T { Number, Bool, String, Table, _Nil };
 	};
-	typedef std::map<std::string, LuaObj, NumericoidStringComparator> _descendantmap;
+	typedef std::map<std::string, Diatom, NumericoidStringComparator> _descendantmap;
 	
-	LuaObj(double x) : _type(Type::Number), _number_value(x) {  }   // Numeric
-	LuaObj(bool x)   : _type(Type::Bool),   _bool_value(x) {  }     // Bool
-	LuaObj(const char *s) : _type(Type::String)                     // String (char*)
+	Diatom(double x) : _type(Type::Number), _number_value(x) {  }   // Numeric
+	Diatom(bool x)   : _type(Type::Bool),   _bool_value(x) {  }     // Bool
+	Diatom(const char *s) : _type(Type::String)                     // String (char*)
 	{  new (&_str_value) std::string(s); }
 
-	LuaObj(const std::string &s) : _type(Type::String)              // String (std::string)
+	Diatom(const std::string &s) : _type(Type::String)              // String (std::string)
 	{  new (&_str_value) std::string(s);  }
 
-	LuaObj() : _type(Type::Table)
+	Diatom() : _type(Type::Table)
 	{  new (&_descendants) _descendantmap();  }
 	
-	LuaObj(const LuaObj &l) : _type(l._type)
+	Diatom(const Diatom &l) : _type(l._type)
 	{
 		clone(l, this, false);
 	}
-	LuaObj& operator=(const LuaObj &l)
+	Diatom& operator=(const Diatom &l)
 	{
 		clone(l, this);
 		return *this;
 	}
-	static LuaObj NilObject() { return _nilobject; }
+	static Diatom NilObject() { return _nilobject; }
 	
-	~LuaObj()
+	~Diatom()
 	{
 		using std::string;
 		if (isString()) _str_value.~string();
 		else if (isTable()) _descendants.~map();
 	}
 	
-	LuaObj& operator[] (const char *);
-	LuaObj& operator[] (const std::string &);
+	Diatom& operator[] (const char *);
+	Diatom& operator[] (const std::string &);
 	bool isTable()  const { return _type == Type::Table; }
 	bool isNumber() const { return _type == Type::Number; }
 	bool isString() const { return _type == Type::String; }
@@ -71,9 +73,9 @@ public:
 	
 private:
 	const Type::T _type;
-	static LuaObj _nilobject;
+	static Diatom _nilobject;
 	struct MrNil { };
-	LuaObj(MrNil) : _type(Type::_Nil) {  }
+	Diatom(MrNil) : _type(Type::_Nil) {  }
 	
 	union {
 		double         _number_value;
@@ -84,13 +86,13 @@ private:
 			// differ from that in the original lua.
 	};
 	
-	static void clone(const LuaObj &from, LuaObj *to, bool to_needs_cleanup = true);
+	static void clone(const Diatom &from, Diatom *to, bool to_needs_cleanup = true);
 		// Clone 'from' onto 'to'.
 		//  - Deals with the conditional memory de/allocation requirements of the union.
 		//  - If 'to' is not initialized yet, set final param to false (i.e. in copy constructor).
 	
 public:
-#ifdef LUAOBJ_PRINT
+#ifdef DIATOM_PRINT
 	void _print(int indentLevel = 0) const {
 		printf("%s:",
 			isTable()   ? "table" :
