@@ -23,10 +23,12 @@ class lua_State;
 class LuaObj {
 public:
 	LuaObj(const std::string &filename, const std::string &objectName);
-	LuaObj(lua_State *);	// Load from the table at -1 on the Lua stack
+	LuaObj(lua_State *);	  // Load from the table at -1 on the Lua stack
+	LuaObj() : type(Type::_Nil) { }		// Create an empty/nil LuaObj
 	
 	static bool loadLuaFile(const std::string &filename, lua_State **);
 	static bool loadLuaString(const std::string &string, lua_State **);
+	static std::string reindentString(const std::string &s);
 	
 	struct Type {
 		enum T { Numeric, Bool, String, Table, _Nil };
@@ -51,8 +53,6 @@ public:
 	bool isNil()    { return type == Type::_Nil; }
 	
 private:
-	LuaObj() : type(Type::_Nil) { }		// Create an empty/nil LuaObj
-	
 	void load(lua_State *);				// Populate recursively from lua stack
 	
 #ifdef LUAOBJ_PRINT
@@ -62,9 +62,5 @@ private:
 	static LuaObj _nilobject;
 	
 };
-
-// Pretty indenting function for lua
-void reindentLuaString(std::string &s);
-
 
 #endif

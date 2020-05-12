@@ -139,7 +139,7 @@ void LuaObj::load(lua_State *L)
 	}
 	
 	// If we are a table, recursively get descendants
-	else if (lua_istable(L, -1)) {
+	else if (lua_istable(L, -1)) {		// S: X
 		type = Type::Table;
 		lua_pushnil(L);					// S: nil, X
 		while (lua_next(L, -2)) {		// S: value, key, X
@@ -191,7 +191,7 @@ std::string LuaObj::_print() const {
 
 // Reindenting function for lua
 
-void reindentLuaString(std::string &s) {
+std::string LuaObj::reindentString(const std::string &s) {
 	std::string t;
 	int indentLevel = 0;
 	bool insideString = false;
@@ -215,6 +215,6 @@ void reindentLuaString(std::string &s) {
 			for (int i=0; i < indentLevel; ++i)
 				t += "    ";
 	}
-	s = t;
+	return t;
 }
 
