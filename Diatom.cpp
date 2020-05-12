@@ -39,15 +39,15 @@ Vec __str_to_chunks(const Str &s) {
 	return chunkz;
 }
 
-bool __chunkLessThan_AtIndex(const Vec &v1, const Vec &v2, int i) {
+bool __chunkLessThan_AtIndex(Vec &v1, Vec &v2, int i) {
 	bool i1_gtr = (i >= v1.size());
 	bool i2_gtr = (i >= v2.size());
 	
 	// If i1 is past the end of V1 but V2 has further sections, V1 orders before V2, & vice versa
 	if (i1_gtr != i2_gtr) return i1_gtr;
 	
-	const __SortChunkEntry &x1 = v1[i];
-	const __SortChunkEntry &x2 = v2[i];
+	__SortChunkEntry &x1 = v1[i];
+	__SortChunkEntry &x2 = v2[i];
 	
 	// If x1 is numeric and x2 isn't, V1 orders before V2
 	if (x1.numeric != x2.numeric) return x1.numeric;
@@ -56,10 +56,22 @@ bool __chunkLessThan_AtIndex(const Vec &v1, const Vec &v2, int i) {
 	if (!x1.numeric && !x2.numeric) return x1.s < x2.s;
 	
 	// If both are numeric, perform a numeric comparison
-	long a, b;
-	sscanf(x1.s.c_str(), "%ld", &a);
-	sscanf(x2.s.c_str(), "%ld", &b);
-	return a < b;
+	Str *longer = &x1.s, *shorter = &x2.s;
+	if (longer->size() < shorter->size()) longer = &x2.s, shorter = &x1.s;
+	
+	Str zero_padding = "";
+	for (int j=0, n = longer->size() - shorter->size(); j < n; ++j)
+		zero_padding += "0";
+	*shorter = zero_padding + *shorter;
+		
+	for (int j=0, n = longer->size(); j < n; ++j) {
+		char c = x1.s[j];
+		char d = x2.s[j];
+		
+		if (c == d) continue;
+		return (c < d);
+	}
+	return false;
 }
 
 bool Diatom::NumericStringComparator::operator() (const Str &a, const Str &b) const {
