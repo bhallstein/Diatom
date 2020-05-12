@@ -161,7 +161,7 @@ LuaObj& LuaObj::operator[] (const std::string &s) {
 }
 
 #ifdef LUAOBJ_PRINT
-std::string LuaObj::_print() const {
+void LuaObj::_print() const {
 	std::stringstream ss;
 	ss << std::string("type: ");
 	ss << std::string(
@@ -183,7 +183,7 @@ std::string LuaObj::_print() const {
 		else ss << (_bool_value ? "true" : "false");
 	}
 
-	return ss.str();
+	printf("%s\n", ss.str().c_str());
 }
 #endif
 

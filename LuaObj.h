@@ -83,7 +83,7 @@ public:
 	const _descendantmap & descendants()  { return _descendants; }
 	
 #ifdef LUAOBJ_PRINT
-	std::string _print() const;
+	void _print() const;
 #endif
 	
 private:
