@@ -51,7 +51,10 @@ private:
 	LuaObj() : type(Type::Nil) { }		// Create an empty/nil LuaObj
 	
 	void load(lua_State *);				// Populate recursively from lua stack
+	
+#ifdef LUAOBJ_PRINT
 	std::string _print() const;
+#endif
 	
 	static LuaObj _nilobject;
 	

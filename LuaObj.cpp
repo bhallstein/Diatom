@@ -138,6 +138,7 @@ LuaObj& LuaObj::operator[] (const std::string &s) {
 	return (*this)[s.c_str()];
 }
 
+#ifdef LUAOBJ_PRINT
 std::string LuaObj::_print() const {
 	std::stringstream ss;
 	ss << std::string("type: ");
@@ -160,4 +161,4 @@ std::string LuaObj::_print() const {
 
 	return ss.str();
 }
-
+#endif
