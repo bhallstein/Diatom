@@ -22,7 +22,7 @@
 #include <map>
 #include <sstream>
 
-	
+
 struct NumericoidStringComparator {
 	bool operator() (const std::string &a, const std::string &b);
 	template <typename T>
@@ -39,7 +39,7 @@ public:
 		NUMBER, BOOL, STRING, TABLE, NIL
 	};
 	
-	ValueType::T type;
+	ValueType type;
 	float       number_value;
 	bool        bool_value;
 	std::string str_value;
@@ -50,13 +50,13 @@ public:
 		// differ from that in the original lua.
 	
 	LuaObj& operator[] (const char *);
-	bool isTable()  { return type == LHValueType::TABLE; }
-	bool isNumber() { return type == LHValueType::NUMBER; }
-	bool isString() { return type == LHValueType::STRING; }
-	bool isBool()   { return type == LHValueType::BOOL; }
-	bool isNil()    { return type == LHValueType::NIL; }
+	bool isTable()  { return type == ValueType::TABLE; }
+	bool isNumber() { return type == ValueType::NUMBER; }
+	bool isString() { return type == ValueType::STRING; }
+	bool isBool()   { return type == ValueType::BOOL; }
+	bool isNil()    { return type == ValueType::NIL; }
 private:
-	LuaObj() : type(LHValueType::NIL) { }
+	LuaObj() : type(ValueType::NIL) { }
 		// Create an empty/nil LuaObj
 
 	std::string _print() const;

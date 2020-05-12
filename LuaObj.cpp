@@ -1,5 +1,5 @@
 /*
- * LuaObj.h - RLTG implementation
+ * LuaObj.cpp - RLTG implementation
  *
  * Copyright (C) 2012 Ben Hallstein
  * 
@@ -12,8 +12,6 @@
  */
 
 #include "LuaObj.h"
-#include <sstream>
-
 
 /* N.S.C. implementation */
 
@@ -36,33 +34,35 @@ LuaObj LuaObj::_nilobject;
 
 /* LuaObj constr: get an LuaObj representing the object X at -1 on the stack */
 
-LuaObj::LuaObj(lua_State *L) : type(LHValueType::NIL)
+LuaObj::LuaObj(lua_State *L) : type(ValueType::NIL)
 {
 	using std::string;
+	
+	if (!L) return;
 	
 	// If we are a simple type, just set type & value
 	if (lhIsSimpleType(L, -1)) {
 		if (lua_isboolean(L, -1)) {
-			type = LHValueType::BOOL;
+			type = ValueType::BOOL;
 			bool_value = lua_toboolean(L, -1);
 		}
 		else if (lua_isnumber(L, -1)) {
-			type = LHValueType::NUMBER;
+			type = ValueType::NUMBER;
 			number_value = lua_tonumber(L, -1);
 		}
 		else if (lua_isstring(L, -1)) {
-			type = LHValueType::STRING;
+			type = ValueType::STRING;
 			str_value = lua_tostring(L, -1);
 		}
 	}
 	
 	// If we are a table, recursively get descendants
 	else if (lua_istable(L, -1)) {
-		type = LHValueType::TABLE;
+		type = ValueType::TABLE;
 		lua_pushnil(L);					// S: nil, X
 		while (lua_next(L, -2)) {		// S: value, key, X
 			LuaObj desc(L);
-			if (desc.type != LHValueType::NIL && lhIsSimpleType(L, -2)) {
+			if (desc.type != ValueType::NIL && lhIsSimpleType(L, -2)) {
 				std::string descName = lhSimpleTypeToString(L, -2);
 				descendants.insert(_descendantmap::value_type(descName, desc));
 			}
@@ -75,8 +75,8 @@ LuaObj::LuaObj(lua_State *L) : type(LHValueType::NIL)
 /* LuaObj implementation */
 
 LuaObj& LuaObj::operator[] (const char *s) {
-	if (type != LHValueType::TABLE)
-		throw Exception(
+	if (type != ValueType::TABLE)
+		throw W::Exception(
 			std::string("operator[] called on non-table LuaObj (") + _print() + std::string(")")
 		);
 	_descendantmap::iterator it = descendants.find(s);
@@ -87,19 +87,19 @@ std::string LuaObj::_print() const {
 	std::stringstream ss;
 	ss << std::string("type: ");
 	ss << std::string(
-					  type == LHValueType::TABLE ? "table" :
-					  type == LHValueType::NUMBER ? "number" :
-					  type == LHValueType::BOOL ? "bool" :
-					  type == LHValueType::STRING ? "string" :
-					  type == LHValueType::NIL ? "nil" : "unknown"
+					  type == ValueType::TABLE ? "table" :
+					  type == ValueType::NUMBER ? "number" :
+					  type == ValueType::BOOL ? "bool" :
+					  type == ValueType::STRING ? "string" :
+					  type == ValueType::NIL ? "nil" : "unknown"
 					  );
-	if (type != LHValueType::NIL) {
+	if (type != ValueType::NIL) {
 		ss << " value: ";
-		if (type == LHValueType::NUMBER) ss << number_value;
-		else if (type == LHValueType::STRING) ss <<  str_value;
+		if (type == ValueType::NUMBER) ss << number_value;
+		else if (type == ValueType::STRING) ss <<  str_value;
 		else ss << (bool_value ? "true" : "false");
 	}
-	else if (type == LHValueType::TABLE)
+	else if (type == ValueType::TABLE)
 		ss << " descendants: " << descendants.size();
 	return ss.str();
 }
