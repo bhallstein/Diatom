@@ -31,7 +31,7 @@ bool NumericoidStringComparator::_strToT(T &t, const std::string &s) {
 LuaObj LuaObj::_nilobject;
 
 
-/* LuaObj constr: get an LuaObj representing the object X at -1 on the stack */
+/* LuaObj constr: get a LuaObj representing the object X at -1 on the stack */
 
 LuaObj::LuaObj(lua_State *L) : type(ValueType::NIL)
 {

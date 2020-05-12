@@ -27,6 +27,7 @@ struct NumericoidStringComparator {
 	static bool _strToT(T &t, const std::string &s);
 };
 
+
 class LuaObj {
 public:
 	LuaObj(lua_State *);
@@ -35,9 +36,8 @@ public:
 	
 	enum ValueType {
 		NUMBER, BOOL, STRING, TABLE, NIL
-	};
+	} type;
 	
-	ValueType type;
 	float       number_value;
 	bool        bool_value;
 	std::string str_value;
@@ -54,6 +54,7 @@ public:
 	bool isString() { return type == STRING; }
 	bool isBool()   { return type == BOOL; }
 	bool isNil()    { return type == NIL; }
+	
 private:
 	LuaObj() : type(NIL) { }
 		// Create an empty/nil LuaObj
@@ -64,5 +65,6 @@ private:
 	static bool lhIsSimpleType(lua_State *, int ind);
 	static std::string lhSimpleTypeToString(lua_State *, int ind);
 };
+
 
 #endif
