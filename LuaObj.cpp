@@ -12,6 +12,7 @@
  */
 
 #include "LuaObj.h"
+#include <sstream>
 
 /* N.S.C. implementation */
 

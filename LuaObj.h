@@ -16,9 +16,8 @@
 
 #include "lua.hpp"
 
-#include <iostream>
 #include <map>
-#include <sstream>
+#include <string>
 
 
 struct NumericoidStringComparator {
