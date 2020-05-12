@@ -1,7 +1,7 @@
 
 a_table = {
 
-	a_number = 5.1,
+	a_number = 5.0,
 	
 	a_bool = true,
 	

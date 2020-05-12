@@ -22,44 +22,96 @@ class lua_State;
 
 class LuaObj {
 public:
+	struct Type {
+		enum T { Numeric, Bool, String, Table, _Nil };
+	};
+	typedef std::map<std::string, LuaObj, NumericoidStringComparator> _descendantmap;
+	
 	LuaObj(const std::string &filename, const std::string &objectName);
-	LuaObj(lua_State *);	  // Load from the table at -1 on the Lua stack
-	LuaObj() : type(Type::_Nil) { }		// Create an empty/nil LuaObj
+	LuaObj(lua_State *);				// Load from the table at -1 on the Lua stack
+
+	LuaObj(double x) : _type(Type::Numeric), _number_value(x) {  }	// Numeric
+	LuaObj(bool x)   : _type(Type::Bool),    _bool_value(x) {  }	// Bool
+	LuaObj(const char *s) : _type(Type::String)						// String (char*)
+	{
+		new (&_str_value) std::string(s);
+	}
+	LuaObj(const std::string &s) : _type(Type::String)				// String (std::string)
+	{
+		new (&_str_value) std::string(s);
+	}
+	LuaObj() : _type(Type::Table)
+	{
+		new (&_descendants) _descendantmap();
+	}
+	
+	LuaObj(const LuaObj &l) : _type(l._type)
+	{
+		clone(l, this);
+	}
+	LuaObj& operator=(const LuaObj &l)
+	{
+		clone(l, this);
+		return *this;
+	}
+	LuaObj NilObject() { return _nilobject; }
+	
+	~LuaObj()
+	{
+		using std::string;
+		if (isString()) _str_value.~string();
+		else if (isTable()) _descendants.~map();
+	}
 	
 	static bool loadLuaFile(const std::string &filename, lua_State **);
 	static bool loadLuaString(const std::string &string, lua_State **);
 	static std::string reindentString(const std::string &s);
 	
-	struct Type {
-		enum T { Numeric, Bool, String, Table, _Nil };
-	};
-	Type::T type;
-	
-	double      number_value;
-	bool        bool_value;
-	std::string str_value;
-	
-	typedef std::map<std::string, LuaObj, NumericoidStringComparator> _descendantmap;
-	_descendantmap descendants;
-		// Note: the descendants map is sorted by the N.S.C., so ordering may
-		// differ from that in the original lua.
-	
 	LuaObj& operator[] (const char *);
 	LuaObj& operator[] (const std::string &);
-	bool isTable()  { return type == Type::Table; }
-	bool isNumber() { return type == Type::Numeric; }
-	bool isString() { return type == Type::String; }
-	bool isBool()   { return type == Type::Bool; }
-	bool isNil()    { return type == Type::_Nil; }
+	bool isTable()  const { return _type == Type::Table; }
+	bool isNumber() const { return _type == Type::Numeric; }
+	bool isString() const { return _type == Type::String; }
+	bool isBool()   const { return _type == Type::Bool; }
+	bool isNil()    const { return _type == Type::_Nil; }
 	
-private:
-	void load(lua_State *);				// Populate recursively from lua stack
+	const Type::T & type() { return _type; }
+	
+	const double &         number_value() { return _number_value; }
+	const bool &           bool_value()   { return _bool_value; }
+	const std::string &    str_value()    { return _str_value; }
+	const _descendantmap & descendants()  { return _descendants; }
 	
 #ifdef LUAOBJ_PRINT
 	std::string _print() const;
 #endif
 	
-	static LuaObj _nilobject;
+private:
+	static LuaObj load(lua_State *);		// Populate recursively from lua stack
+	
+	const Type::T _type;
+	static const LuaObj _nilobject;
+	
+	union {
+		double         _number_value;
+		bool           _bool_value;
+		std::string    _str_value;
+		_descendantmap _descendants;
+			// Note: the descendants map is sorted by the N.S.C., so ordering may
+			// differ from that in the original lua.
+	};
+	
+	static void clone(const LuaObj &from, LuaObj *to) {
+		Type::T *_type_unsafe = (Type::T*) &to->_type;
+		*_type_unsafe = from._type;
+		switch (to->_type) {
+			case Type::String: new (&to->_str_value) std::string(from._str_value); break;
+			case Type::Table:  new (&to->_descendants) _descendantmap(from._descendants); break;
+			case Type::Numeric: to->_number_value = from._number_value;
+			case Type::Bool:    to->_bool_value = from._bool_value;
+			default: break;
+		}
+	}
 	
 };
 

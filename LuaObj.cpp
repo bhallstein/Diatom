@@ -13,18 +13,20 @@
 #pragma mark Helpers
 
 bool __luaobj_IsSimpleType(lua_State *L, int ind) {
-	return (lua_isnumber(L, ind) || lua_isboolean(L, ind) || lua_isstring(L, ind));
+	int t = lua_type(L, ind);
+	return (t == LUA_TNUMBER || t == LUA_TBOOLEAN || t == LUA_TSTRING);
 }
 std::string __luaobj_SimpleTypeToString(lua_State *L, int ind) {
 	std::string s;
-	if (lua_isboolean(L, ind))
+	int t = lua_type(L, ind);
+	if (t == LUA_TBOOLEAN)
 		s = lua_toboolean(L, ind) ? "true" : "false";
-	else if (lua_isnumber(L, ind)) {
+	else if (t == LUA_TNUMBER) {
 		std::stringstream ss;
 		ss << lua_tonumber(L, ind);
 		s = ss.str();
 	}
-	else if (lua_isstring(L, ind))
+	else if (t == LUA_TSTRING)
 		s = lua_tostring(L, ind);
 	return s;
 }
@@ -88,22 +90,22 @@ bool NumericoidStringComparator::operator()(const std::string &a, const std::str
 
 #pragma mark - LuaObj
 
-LuaObj LuaObj::_nilobject;
+const LuaObj LuaObj::_nilobject;
 
 LuaObj::LuaObj(const std::string &filename, const std::string &objectname) :
-	type(Type::_Nil)
+	_type(Type::_Nil)
 {
 	lua_State *L;
 	if (loadLuaFile(filename, &L)) {
 		lua_getglobal(L, objectname.c_str());
-		load(L);
+		*this = load(L);
 		lua_close(L);
 	}
 }
 LuaObj::LuaObj(lua_State *L) :
-	type(Type::_Nil)
+	_type(Type::_Nil)
 {
-	load(L);
+	*this = load(L);
 }
 
 bool LuaObj::loadLuaFile(const std::string &filename, lua_State **L) {
@@ -116,48 +118,43 @@ bool LuaObj::loadLuaString(const std::string &string, lua_State **L) {
 }
 
 
-void LuaObj::load(lua_State *L)
+LuaObj LuaObj::load(lua_State *L)
 {
 	using std::string;
 	
-	if (!L) return;
+	if (!L) return _nilobject;
 	
 	// If we are a simple type, just set type & value
 	if (__luaobj_IsSimpleType(L, -1)) {
-		if (lua_isboolean(L, -1)) {
-			type = Type::Bool;
-			bool_value = lua_toboolean(L, -1);
-		}
-		else if (lua_isnumber(L, -1)) {
-			type = Type::Numeric;
-			number_value = lua_tonumber(L, -1);
-		}
-		else if (lua_isstring(L, -1)) {
-			type = Type::String;
-			str_value = lua_tostring(L, -1);
-		}
+		int t = lua_type(L, -1);
+		if (t == LUA_TSTRING)   return LuaObj(lua_tostring(L, -1));
+		if (t == LUA_TBOOLEAN)  return LuaObj((bool) lua_toboolean(L, -1));
+		if (t == LUA_TNUMBER)   return LuaObj((double) lua_tonumber(L, -1));
 	}
 	
 	// If we are a table, recursively get descendants
 	else if (lua_istable(L, -1)) {		// S: X
-		type = Type::Table;
+		LuaObj l;
 		lua_pushnil(L);					// S: nil, X
 		while (lua_next(L, -2)) {		// S: value, key, X
-			LuaObj desc;
-			desc.load(L);
-			if (desc.type != Type::_Nil && __luaobj_IsSimpleType(L, -2)) {
+			LuaObj desc = load(L);
+			if (!desc.isNil() && __luaobj_IsSimpleType(L, -2)) {
 				std::string descName = __luaobj_SimpleTypeToString(L, -2);
-				descendants.insert(_descendantmap::value_type(descName, desc));
+				l._descendants.insert(_descendantmap::value_type(descName, desc));
 			}
 			lua_pop(L, 1);				// S: key, X
 		}								// S: X
+		return l;
 	}
+	
+	return _nilobject;
 }
 
 
 LuaObj& LuaObj::operator[] (const char *s) {
-	auto it = descendants.find(s);
-	return (it == descendants.end() ? _nilobject : it->second);
+	// auto it = descendants.find(s);
+	// return (it == descendants.end() ? _nilobject : it->second);
+	return _descendants[s];
 }
 LuaObj& LuaObj::operator[] (const std::string &s) {
 	return (*this)[s.c_str()];
@@ -168,20 +165,22 @@ std::string LuaObj::_print() const {
 	std::stringstream ss;
 	ss << std::string("type: ");
 	ss << std::string(
-		type == Type::Table ? "table" :
-		type == Type::Numeric ? "number" :
-		type == Type::Bool ? "bool" :
-		type == Type::String ? "string" :
-		type == Type::_Nil ? "nil" : "unknown"
+		isTable()   ? "table" :
+		isNumber()  ? "number" :
+		isBool()    ? "bool" :
+		isString()  ? "string" :
+		isNil()     ? "nil" : "unknown"
 	);
 	
-	if (type == Type::Table)
-		ss << " n_descendants: " << descendants.size();
-	else if (type != Type::_Nil) {
+	// if (type == Type::String) ss << str_value;
+	
+	if (isTable())
+		ss << " n_descendants: " << _descendants.size();
+	else if (!isNil()) {
 		ss << " value: ";
-		if (type == Type::Numeric) ss << number_value;
-		else if (type == Type::String) ss <<  str_value;
-		else ss << (bool_value ? "true" : "false");
+		if (isNumber()) ss << _number_value;
+		else if (isString()) ss << _str_value;
+		else ss << (_bool_value ? "true" : "false");
 	}
 
 	return ss.str();
@@ -195,7 +194,7 @@ std::string LuaObj::reindentString(const std::string &s) {
 	std::string t;
 	int indentLevel = 0;
 	bool insideString = false;
-
+	
 	for (auto it = s.begin(), str_begin = s.begin(), str_end = s.end(); it != str_end; ++it) {
 		bool last  = (it+1 == str_end);
 		bool first = (it == str_begin);
