@@ -1,7 +1,0 @@
-clang++ -std=c++11    \
-  test.cpp            \
-  ../Diatom.cpp          \
-  ../Diatom-Storage.cpp  \
-  -I .. \
-  -I ../../C++\ Containers \
-  -g

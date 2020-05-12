@@ -1,121 +1,166 @@
+# Diatom
 
-# About Diatom
+A C++ object that stores strings, numbers, bools, or other Diatoms. These objects then trivially serialize to and from string.
 
-Diatom is a simple table class, which can either hold a value, or a table of “descendants” (other Diatoms).
+Created to collect data in a video game prior to serialization.
+
+Written in 2012, modified 2015 & 2020. Doesn't include unicode support. It's very much a hobbyist/tinkering project, not for use.
+
+To run tests: `bash run.sh` from the `/test` directory.
+
+```
+Diatoms are single-celled algae that float freely in the ocean. Encased in transparent silica, they take a variety of incredibly beautiful (microscopic) forms, and are the only organisms to have cell walls made from glass.
+```
 
 
 ## Types
 
-Diatom supports only three types of value – numbers (i.e. doubles), strings, and bools. The can also be nil – i.e. not holding a value. You can check the type, & obtain the value, like so:
+A Diatom is a string, number (double), boolean, or nil. Or a Diatom is a **table** holding other Diatoms.
 
 ```cpp
-Diatom d(2.718);
-d.isNumber();    // => true
-double exp = d.number_value();    // exp == 2.718
+Diatom d = 2.718;
+d.is_number();    // -> true
+d.number_value(); // -> 2.718
 ```
 
-Instead of representing a numeric, bool or string value, a *table* Diatom has a set of named descendants, which are other Diatoms, which are indexed by string:
+Diatom's defult constructor produces a table Diatom:
 
 ```cpp
 Diatom d;
-d.isTable();    // => true
-d["exp"] = Diatom(exp);    // d["exp"] is a new number-Diatom
-                           // (you could also simply write d["exp"] = exp)
-table_diatom["exp"].number_value();    // => 2.718
+d.is_table();         // => true
+d["my_prop"] = 7.;    // d["my_prop"] is now number Diatom with value 7.
+
+d["my_prop"].value__number;    // => 2.718
 ```
 
 
-## Copyability & Immutability
+## Interface
 
-All Diatoms can be copied, including tables, which deep-copy.
-
-Diatoms are semi-immutable – their values cannot be set directly after construction. However, they can be altered by copying from another Diatom:
+### Types:
 
 ```cpp
-Diatom d1(3.14);
-d1 = Diatom("Architeuthis");
-d1.str_value();    // => "Architeuthis"
+Diatom::Type::Number
+Diatom::Type::Bool
+Diatom::Type::String
+Diatom::Type::Table
+Diatom::Type::Nil
 ```
 
-Simple assignment is possible, due to implicit conversion – consider this syntactic sugar:
+### Properties
 
 ```cpp
-d1 = "Archaeteuthis";
+Type::T type;
+double           value__number;
+bool             value__bool;
+std::string      value__string;
+TableEntryVector descendants;
 ```
-    
-Here, C++ constructs a temporary Diatom from the C string, then calls d1’s `operator=`, copying the temporary into d1, which is now a string Diatom.
 
-
-## However, tables are mutable
-
-The exception, to allow adding and removing descendants, is table Diatoms. The following is perfectly valid:
+### Methods
 
 ```cpp
-Diatom seabird_genuses;
-table["shearwater"] = "Puffinus";
-table["cormorant"]  = "Phalacrocorax";
-table["puffin"]     = "Fratercula";
+bool is_nil()
+bool is_number()
+bool is_bool()
+bool is_string()
+bool is_table()
+
+Diatom operator[](const Diatom &)
+
+template <class F>
+void each(F f)
+	// for a table Diatom, calls f(std::string name, Diatom entry) for each child
+
+template <class F>
+void recurse(F f)
+	// for a table Diatom, recurses through the table while calling
+	// f(std::string name, Diatom entry)
 ```
 
 
-## Constructing 
+## Constructing
+
+The default constructor creates a table Diatom.
+```cpp
+Diatom d_table;
+```
+
+There are constructors for each Diatom type.
 
 ```cpp
-Diatom()
+Diatom d_pi = 3.14;
+Diatom d_str = "A string Diatom";
+Diatom d_bool = true;
+
+or:
+
+Diatom d_pi{3.14};
+Diatom d_str{A string Diatom};
+Diatom d_bool{true};
 ```
-    
-The default constructor creates an empty table Diatom.
 
-```cpp 
-Diatom(double) / Diatom(bool) / Diatom(string or const char *)
+Diatoms are copyable, including tables, which deep-copy:
+```cpp
+Diatom d1;
+d1["birds"] = Diatom();
+d1["birds"]["puffins"] = "Fratercula arctica";
+
+Diatom d2 = d1;
 ```
 
-Create number, bool, or string Diatoms.
 
-There is no constructor to create a nil Diatom. Use the static method:
+## Serialization
+
+`DiatomSerialization.h` defines methods to convert Diatoms to and from strings. The format is line by line key value pairs:
+
+```
+lemurs: 5
+birds:
+  blue_tits: "14"
+  crows: false
+  aquatic:
+    penguins: 10
+```
+
+
 
 ```cpp
-Diatom d_nil = Diatom::NilObject();
+std::string diatom__serialize(Diatom &d)
+DiatomParseResult diatom__unserialize(const std::string &s)
 ```
 
-## Methods
+`DiatomParseResult` is a struct as follows:
 
 ```cpp
-bool isTable()
-isNumber()
-isBool()
-isString()
-isNil()
+  bool success;
+  std::string error_string;
+  Diatom d;
 ```
 
-These are self-explanatory, hopefully.
+**Example:**
 
 ```cpp
-Diatom::Type::T type()
-```
+std::string input =
+  "lemurs: 5\n"
+  "birds:\n"
+  "  blue_tits: \"14\"\n"
+  "  aquatic:\n"
+  "    penguins: 10\n"
+  "  crows: false\n";
 
-Return the Diatom’s type as an enum. The possible values of the enum are: `Number` / `Bool` / `String` / `Table` / `_Nil`.
+auto animal_inventory = diatom__unserialize(input);
+animal_inventory.success                     // -> true
+animal_inventory.d["lemurs"].value__number   // -> 5
+```
 
 ```cpp
-Diatom& operator[](std::string s or const char *s)
+Diatom romeo_and_juliet;
+d["characters"] = Diatom();
+d["characters"]["romeo"] = "montague";
+d["characters"]["juliet"] = "capulet";
+
+diatom__serialize(d);     // characters:
+                          //   romeo: "montague"
+													//   juliet: "capulet"
 ```
 
-If a table, get the descendant named `s`.
-
-```cpp
-const double &           number_value()
-const bool &             bool_value()
-const std::string &      str_value()
-Diatom::_descendantmap & descendants()
-```
-
-Get the value, or the map of descendants.
-
-
-## Kthx
-
-That‘s it. Diatom is pretty small.
-
-Diatom in its current form was written in April 2015, having started out as LuaObj in 2012, and is made available under the MIT licence.
-
-– Ben Hallstein, 2012/15

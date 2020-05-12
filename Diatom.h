@@ -1,119 +1,109 @@
-/*
- * Diatom.h - RLTG implementation
- *
- * Copyright (c) 2012 - Ben Hallstein - ben.am
- * - Converted from lua-specific to generic table object on 18.4.2015
- *   on the train from Kolding to Copenhagen.
- * 
- * Published under the MIT license - http://opensource.org/licenses/MIT
- *
- */
+//
+// Diatom.h
+//
+// General purpose object for storing data:
+//  - Number
+//  - String
+//  - Bool
+//  - Nil
+//  - Nested objects ('Table')
+//
+// -- MIT Licensed: http://opensource.org/licenses/MIT/
+// -- BH 2012
+//
 
 #ifndef __Diatom_h
 #define __Diatom_h
 
-#include <vector>
 #include <string>
-#include "StretchyArray_NonReallocating.h"
+#include <vector>
+#include <algorithm>
 
 
-class Diatom {
-public:
-	struct Type {
-		enum T { Number, Bool, String, Table, _Nil };
-	};
-	
-	template <class T>
-	struct Wrapper {
-		std::string s;
-		T d;
-	};
-	typedef StretchyArray_NonReallocating<Wrapper<Diatom>> _descvec;
-	
-	Diatom(double x) : _type(Type::Number), _number_value(x) {  }   // Numeric
-	Diatom(bool x)   : _type(Type::Bool),   _bool_value(x) {  }     // Bool
-	Diatom(const char *s) : _type(Type::String)                     // String (char*)
-	{  new (&_str_value) std::string(s); }
+struct Diatom {
+  struct Type {
+    enum T { Number, Bool, String, Table, Nil };
+  };
 
-	Diatom(const std::string &s) : _type(Type::String)              // String (std::string)
-	{  new (&_str_value) std::string(s);  }
+  template <class T>
+  struct TableEntry {
+    std::string name;
+    T item;
+  };
+  typedef TableEntry<Diatom> DTableEntry;
+  typedef std::vector<DTableEntry> TableEntryVector;
 
-	Diatom() : _type(Type::Table)
-	{  new (&_descendants) _descvec();  }
-	
-	Diatom(const Diatom &l) : _type(l._type)
-	{
-		clone(l, this, false);
-	}
-	Diatom& operator=(const Diatom &l)
-	{
-		clone(l, this);
-		return *this;
-	}
-	static Diatom NilObject() { return _nilobject; }
-	
-	~Diatom()
-	{
-		using std::string;
-		if (isString()) _str_value.~string();
-		else if (isTable()) _descendants.~StretchyArray_NonReallocating();
-	}
-	
-	Diatom& operator[] (const char *);
-	Diatom& operator[] (const std::string &);
-	bool isTable()  const { return _type == Type::Table;  }
-	bool isNumber() const { return _type == Type::Number; }
-	bool isString() const { return _type == Type::String; }
-	bool isBool()   const { return _type == Type::Bool;   }
-	bool isNil()    const { return _type == Type::_Nil;   }
-	
-	Type::T type() { return _type; }
-	size_t n_descendants() const { return _descendants.current_size(); }
-	
-	const double &        number_value() const { return _number_value; }
-	const bool &          bool_value()   const { return _bool_value; }
-	const std::string &   str_value()    const { return _str_value; }
-	
-	template<class Fn>
-	void each_descendant(Fn f) {
-		_descendants.each([&](Wrapper<Diatom> &w) {
-			f(w.s, w.d);
-		});
-	}
-	
-	// void print() {
-	// 	if (isTable())
-	// 		each_descendant([&](std::string key, Diatom &d) {
-	// 			printf("%s: ", key.c_str());
-	// 			d.print();
-	// 		});
-	// 	else if (isNumber())
-	// 		printf("%.1f\n", number_value());
-	// 	else if (isString())
-	// 		printf("%s\n", str_value().c_str());
-	// 	else if (isBool())
-	// 		printf("%s\n", bool_value() ? "true" : "false");
-	// 	else
-	// 		printf("nil\n");
-	// }
-	
-private:
-	const Type::T _type;
-	static Diatom _nilobject;
-	struct MrNil { };
-	Diatom(MrNil) : _type(Type::_Nil) {  }
-	
-	union {
-		double       _number_value;
-		bool         _bool_value;
-		std::string  _str_value;
-		_descvec     _descendants;
-	};
-	
-	static void clone(const Diatom &from, Diatom *to, bool to_needs_cleanup = true);
-		// Clone 'from' onto 'to'.
-		//  - Deals with the conditional memory de/allocation requirements of the union.
-		//  - If 'to' is not initialized yet, set final param to false (i.e. in copy constructor).
+
+  // Properties
+  // -----------------------------
+
+  Type::T type;
+  double           value__number;
+  bool             value__bool;
+  std::string      value__string;
+  TableEntryVector descendants;
+
+  bool is_nil()    { return type == Type::Nil;   }
+  bool is_number() { return type == Type::Number; }
+  bool is_bool()   { return type == Type::Bool;   }
+  bool is_string() { return type == Type::String; }
+  bool is_table()  { return type == Type::Table;  }
+
+
+  // Constructors
+  // -----------------------------
+
+  Diatom()                     : type(Type::Table) { };
+  Diatom(double x)             : type(Type::Number), value__number(x) { }
+  Diatom(bool x)               : type(Type::Bool),   value__bool(x)   { }
+  Diatom(const char *s)        : type(Type::String), value__string(s) { }
+  Diatom(const std::string &s) : type(Type::String), value__string(s) { }
+  Diatom(Type::T t) : type(t) { }
+
+
+  // Table diatom lookup
+  // -----------------------------
+
+  TableEntryVector::iterator index_of(const std::string &s) {
+    return std::find_if(descendants.begin(), descendants.end(), [=](const DTableEntry &item) {
+      return item.name == s;
+    });
+  }
+
+  Diatom& operator[](const std::string &s) {
+    const TableEntryVector::iterator &it = index_of(s);
+
+    if (it == descendants.end()) {
+      descendants.push_back({ s, Diatom(Type::Nil) });
+      return descendants.back().item;
+    }
+
+    return it->item;
+  }
+
+
+  // Iteration
+  // -----------------------------
+
+  template <class F>
+  void each(F f) {
+    for (DTableEntry &entry : descendants) {
+      f(entry.name, entry.item);
+    }
+  }
+
+  template <class F>
+  void recurse(F f) {
+    for (DTableEntry &entry : descendants) {
+      f(entry.name, entry.item);
+
+      if (entry.item.type == Type::Table) {
+        entry.item.recurse(f);
+      }
+    }
+  }
 };
 
+
 #endif
+
