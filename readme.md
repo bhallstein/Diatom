@@ -23,7 +23,7 @@ Alternatively, you can construct a LuaObj from an already-loaded script. First p
 
 ## Types & Values
 
-A LuaObj may represent a table containing other values, or a number, string, bool, or nil. The type is stored in the object’s `type` property, and is one of the enum `LuaObj::Type::T` values, `Numeric`, `Bool`, `String`, `Table`, or `Nil`.
+A LuaObj may represent a table containing other values, or a number, string, bool, or nil. The type is stored in the object’s `type` property, and is one of the enum `LuaObj::Type::T` values, `Numeric`, `Bool`, `String`, `Table`, or `_Nil`.
 
 The represented value itself is stored in another property – depending on type, `double number_value`, `bool bool_value`, or `std::string str_value`.
 
