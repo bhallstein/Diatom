@@ -23,6 +23,7 @@
 #include "Diatom.h"
 
 std::string diatomToString(Diatom &d, const std::string &name);
+std::string diatomToString(Diatom &d);
 
 Diatom diatomFromFile(const std::string &filename);
 Diatom diatomFromString(const std::string &);

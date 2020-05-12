@@ -41,7 +41,7 @@ Str __diatomToString(Diatom &d, int indentLevel = 0) {
 		for (auto &i : d.descendants()) {
 			if (i.second.isNil()) continue;
 			s += "\n";
-			__INDENT(s, indentLevel+1);
+			__INDENT(s, indentLevel);
 			s += i.first + Str(":");
 			s += __diatomToString(i.second, indentLevel+1);
 			++n_desc;
@@ -54,11 +54,19 @@ Str __diatomToString(Diatom &d, int indentLevel = 0) {
 	return s;
 }
 
+
 #pragma mark - diatomToString
+
+Str diatomToString(Diatom &d) {
+    if (d.isNil()) return "";
+    return __diatomToString(d) + "\n";
+}
 
 Str diatomToString(Diatom &d, const Str &name) {
 	if (d.isNil()) return "";
-	return name + Str(":") + __diatomToString(d) + "\n";
+	Diatom d_wrapper;
+	d_wrapper[name] = d;
+	return diatomToString(d_wrapper);
 }
 
 
@@ -106,16 +114,15 @@ Diatom diatomFromString(const Str &str) {
 		}
 		static Str typeToStr(Type t) {
 			return (
-				t == EndOfString ? "EndOfString" :
-				t == EndOfLine ? "EndOfLine" :
-				t == Name ? "Name" :
+				t == EndOfString    ? "EndOfString"    :
+				t == EndOfLine      ? "EndOfLine"      :
+				t == Name           ? "Name"           :
 				t == StringProperty ? "StringProperty" :
 				t == NumberProperty ? "NumberProperty" :
-				t == BoolProperty ? "BoolProperty" :
-				t == Whitespace ? "Whitespace" :
-				t == Colon ? "Colon" :
-				t == Comma ? "Comma" :
-				"Unknown"
+				t == BoolProperty   ? "BoolProperty"   :
+				t == Whitespace     ? "Whitespace"     :
+				t == Colon          ? "Colon"          :
+				t == Comma          ? "Comma"          : "Unknown"
 			);
 		}
 	};
@@ -394,12 +401,10 @@ Diatom diatomFromString(const Str &str) {
 		}
 		
 		if (state.pos == State::PostProperty) {
-			if (t.type == Token::Comma) {
-				
-			}
-			else if (t.type == Token::EndOfLine) {
+			if (t.type == Token::Comma)
+				;
+			else if (t.type == Token::EndOfLine)
 				state.pos = State::StartLine;
-			}
 			else
 				StateErr(t.type, state.newlines+1, "EndOfLine or EndOfString");
 		}
