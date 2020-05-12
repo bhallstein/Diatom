@@ -6,7 +6,7 @@ Diatom is a simple table class, which can either hold a value, or a table of “
 
 ## Types
 
-Diatom support only three types of value – numbers (i.e. doubles), strings, and bools. The can also be nil – i.e. not holding a value. You can check the type, & obtain the value, like so:
+Diatom supports only three types of value – numbers (i.e. doubles), strings, and bools. The can also be nil – i.e. not holding a value. You can check the type, & obtain the value, like so:
 
 ```cpp
 Diatom d(2.718);

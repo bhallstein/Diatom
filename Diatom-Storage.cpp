@@ -38,14 +38,14 @@ Str __diatomToString(Diatom &d, int indentLevel = 0) {
 	Str s;
 	if (d.isTable()) {
 		int n_desc = 0;
-		for (auto &i : d.descendants()) {
-			if (i.second.isNil()) continue;
+		d.each_descendant([&](std::string &key, Diatom &d) -> void {
+			if (d.isNil()) return;
 			s += "\n";
 			__INDENT(s, indentLevel);
-			s += i.first + Str(":");
-			s += __diatomToString(i.second, indentLevel+1);
+			s += key + Str(":");
+			s += __diatomToString(d, indentLevel+1);
 			++n_desc;
-		}
+		});
 	}
 	else if (d.isNumber()) s += Str(" ") + DSHelpers::__floatFmt(d.number_value());
 	else if (d.isString()) s += Str(" ") + Str("\"") + d.str_value() + "\"";

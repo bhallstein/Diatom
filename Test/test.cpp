@@ -1,12 +1,11 @@
 #include "Diatom.h"
-#include "Diatom-Lua.h"
 #include "Diatom-Storage.h"
 #include <cassert>
 #include <unistd.h>
 #include <vector>
 
 #define p_assert(x) do {             \
-		printf("TEST: %38s", #x);    \
+		printf("%60s", #x);    \
 		assert(x);                   \
 		printf(" - PASS :)\n");      \
 	} while (false)
@@ -62,10 +61,15 @@ void testDiatom() {
 	tl_1["monkeys"] = (double) 12;
 	tl_1["custard"] = "lemons";
 	tl_1["bananalike"] = false;
-	p_assert(tl_1.descendants().size() == 4);
+	p_assert(tl_1.n_descendants() == 4);
 	p_assert(tl_1["monkeys"].isNumber());
 	p_assert(tl_1["custard"].isString());
 	p_assert(tl_1["bananalike"].isBool());
+	tl_1["subtable"] = Diatom();
+	tl_1["subtable"]["pears"] = double(7);
+	p_assert(tl_1["subtable"].isTable());
+	p_assert(tl_1["subtable"]["pears"].isNumber());
+	
 	
 	printf("- Testing descendant ordering\n");
 	Diatom tl_o;
@@ -76,54 +80,56 @@ void testDiatom() {
 	tl_o["n1"];
 	tl_o["m3"];
 	std::vector<std::string> exp = {
-		"m3", "n1", "n4", "n10", "n20", "n20a"
+		"n10", "n4", "n20a", "n20", "n1", "m3"
 	};
 	int i = 0;
-	for (auto &desc : tl_o.descendants())
-		p_assert(desc.first == exp[i++]);
+	tl_o.each_descendant([&](std::string s, Diatom &d) {
+		p_assert(s == exp[i++]);
+	});
+	p_assert(i == exp.size());
 		
 	
 	printf("- Testing table copying\n");
-	tl_1["russians"] = Diatom();
-	tl_1["russians"]["nikolai"] = 12.4;
-	tl_1["russians"]["mikhail"] = "Gorbachev";
-	Diatom tl_2 = tl_1;
-	Diatom nikolai = tl_2["russians"]["nikolai"];
-	Diatom mikhail = tl_2["russians"]["mikhail"];
-	Diatom *p_mikhail_1 = &(tl_1["russians"]["mikhail"]);
-	Diatom *p_mikhail_2 = &(tl_2["russians"]["mikhail"]);
-	p_assert(nikolai.number_value() == 12.4);
-	p_assert(mikhail.str_value() == "Gorbachev");
-	p_assert(p_mikhail_1 != p_mikhail_2);
+	Diatom russians;
+	russians["nikolai"] = 12.4;
+	russians["mikhail"] = "Gorbachev";
+	russians["scientists"] = Diatom();
+	russians["scientists"]["pavlov"] = "Dogs";
 	
-	printf("- Testing lua serialization\n");
-	tl_1["francais"] = Diatom();
-	tl_1["francais"]["jacques"] = "Chirac";
-	{ /* Serialize to tmp file */
-		std::string ser = std::string("testykins = ") + diatomToLua(tl_1);
-	    FILE *fp = fopen("/tmp/diatom-test.lua", "w");
-		p_assert(fp != NULL);
-        fputs(ser.c_str(), fp);
-        fclose(fp);
-	}
-	Diatom d_ser = luaToDiatom("/tmp/diatom-test.lua", "testykins");
-	unlink("/tmp/diatom-test.lua");
-	Diatom nikolai2 = d_ser["russians"]["nikolai"];
-	p_assert(nikolai2.number_value() == 12.4);
+	Diatom r2 = russians;
+	p_assert(russians.isTable());
+	p_assert(r2.isTable());
+	p_assert(russians.n_descendants() == r2.n_descendants());
+	p_assert(r2["nikolai"].isNumber());
+	p_assert(r2["mikhail"].isString());
+	p_assert(r2["nikolai"].number_value() == 12.4);
+	p_assert(r2["mikhail"].str_value() == "Gorbachev");
+	p_assert(r2["scientists"].isTable());
+	p_assert(r2["scientists"].n_descendants() == 1);
+	p_assert(r2["scientists"]["pavlov"].str_value() == "Dogs");
+	
 	
 	printf("- Testing .diatom serialization\n");
+	Diatom d_ser;
+	Diatom nikolai2;
 	{ /* Serialize to tmp file */
-		std::string ser = diatomToString(tl_1, "testykins");
-		// printf("%s\n", ser.c_str());
+		std::string ser = diatomToString(russians, "testykins");
 		FILE *fp = fopen("/tmp/diatom-test.diatom", "w");
 		p_assert(fp);
-		fputs(ser.c_str(), fp);
+		int blah = fputs(ser.c_str(), fp);
+		p_assert(blah >= 0 && blah != EOF);
 		fclose(fp);
 	}
 	d_ser = diatomFromFile("/tmp/diatom-test.diatom")["testykins"];
+	p_assert(d_ser.isTable());
+	p_assert(d_ser["nikolai"].isNumber());
+	p_assert(d_ser["mikhail"].isString());
+	p_assert(d_ser["nikolai"].number_value() == 12.4);
+	p_assert(d_ser["mikhail"].str_value() == "Gorbachev");
+	p_assert(d_ser["scientists"].isTable());
+	p_assert(d_ser["scientists"].n_descendants() == 1);
+	p_assert(d_ser["scientists"]["pavlov"].str_value() == "Dogs");
 	unlink("/tmp/diatom-test.diatom");
-	nikolai2 = d_ser["russians"]["nikolai"];
-	p_assert(nikolai2.number_value() == 12.4);
 	
 	printf("\n");
 }
