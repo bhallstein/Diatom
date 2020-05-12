@@ -6,8 +6,21 @@
 #include "Diatom-Lua.h"
 #include "lua.hpp"
 
+std::string __floatFmt(double x) {
+	char s[100];
+	for (int i=0; i < 100; ++i) s[i] = '0';
+	sprintf(s, "%.17f", x);
+
+	int i=99;
+	for (; i >= 0 && s[i] != '.' && (s[i] == '0' || s[i] == '\0'); --i) ;
+	if (s[i] == '.') s[i] = '\0';
+	else             s[i+1] = '\0';
+	
+	return std::string(s);
+}
+
 std::string __d_to_s(Diatom &d) {
-	if (d.isNumber()) return std::to_string(d.number_value());
+	if (d.isNumber()) return __floatFmt(d.number_value());
 	if (d.isString()) return std::string("\"") + d.str_value() + "\"";
 	if (d.isBool())   return (d.bool_value() ? "true" : "false");
 	return "";
@@ -42,18 +55,22 @@ std::string __reindent_lua_str(const std::string &s) {
 
 std::string __diatomToLua(Diatom &d) {
 	std::string s;
-	s += "{\n";
+	s += "{";
+	int n_desc = 0;
 	for (auto &i : d.descendants()) {
 		if (i.second.isNil()) continue;
-		s += i.first + std::string(" = ");
+		++n_desc;
+		s += std::string("\n") + i.first + std::string(" = ");
 		if (i.second.isTable()) s += __diatomToLua(i.second);
 		else                    s += __d_to_s(i.second);
 		if (i.first != d.descendants().rbegin()->first)
-			s += ",\n";
+			s += ",";
 		else
-			s += "\n";
+			s += "";
 	}
-	s += "}";
+	if (n_desc > 0) s += "\n}";
+	else s += " }";
+	
 	return s;
 }
 
