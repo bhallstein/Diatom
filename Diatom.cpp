@@ -7,7 +7,87 @@
  */
 
 #include "Diatom.h"
+#include <vector>
+using Str = std::string;
 
+#pragma mark - Key sorting
+
+#define CH_NUMERIC(c)  (c >= '0' && c <= '9')
+
+struct __SortChunkEntry {
+	bool numeric;
+	Str s;
+};
+
+using Vec = std::vector<__SortChunkEntry>;
+
+Vec __str_to_chunks(const Str &s) {
+	Vec chunkz;
+	bool exp_numeric = CH_NUMERIC(s[0]);
+	Str cur;
+	for (auto c : s)
+		if (CH_NUMERIC(c) == exp_numeric) {
+			cur += c;
+		}
+		else {
+			chunkz.push_back({exp_numeric, cur});
+			cur = "";
+			cur += c;
+			exp_numeric = !exp_numeric;
+		}
+	if (cur.size() > 0)
+		chunkz.push_back({exp_numeric, cur});
+	return chunkz;
+}
+
+bool __chunkLessThan_AtIndex(const Vec &v1, const Vec &v2, int i) {
+	bool i1_gtr = (i >= v1.size());
+	bool i2_gtr = (i >= v2.size());
+	
+	// If i1 is past the end of V1 but V2 has further sections, V1 orders before V2 
+	if (i1_gtr) {
+		if (i2_gtr) return false;
+		else return true;
+	}
+	if (i2_gtr)
+		return false;
+	
+	const __SortChunkEntry &x1 = v1[i];
+	const __SortChunkEntry &x2 = v2[i];
+	
+	// If x1 is numeric and x2 isn't, V1 orders before V2
+	if (x1.numeric != x2.numeric) return x1.numeric;
+	
+	// If neither are numeric, perform a string comparison
+	if (!x1.numeric && !x2.numeric) return x1.s < x2.s;
+	
+	// If both are numeric, perform a numeric comparison
+	long a, b;
+	sscanf(x1.s.c_str(), "%ld", &a);
+	sscanf(x2.s.c_str(), "%ld", &b);
+	return a < b;
+}
+
+bool Diatom::NumericStringComparator::operator() (const Str &a, const Str &b) const {
+		Vec v1 = __str_to_chunks(a);
+		Vec v2 = __str_to_chunks(b);
+		
+		int i, n;
+		{
+			int l1 = v1.size(), l2 = v2.size();
+			n = (l1 > l2 ? l1 : l2);
+		}
+		
+		for (i=0; i < n; ++i)
+			if (__chunkLessThan_AtIndex(v1, v2, i))
+				return true;
+		
+		return false;
+	}
+;
+
+
+#pragma mark - Diatom
 
 Diatom Diatom::_nilobject = Diatom(MrNil());
 
@@ -17,16 +97,14 @@ Diatom& Diatom::operator[] (const char *s) {
 	if (it == _descendants.end()) return _descendants[s] = _nilobject;
 	return it->second;
 }
-Diatom& Diatom::operator[] (const std::string &s) {
+Diatom& Diatom::operator[] (const Str &s) {
 	return (*this)[s.c_str()];
 }
 
 void Diatom::clone(const Diatom &from, Diatom *to, bool to_needs_cleanup) {
-	using std::string;
-	
 	if (to_needs_cleanup) {
 		switch (to->_type) {
-			case Type::String: to->_str_value.~string(); break;
+			case Type::String: to->_str_value.~Str(); break;
 			case Type::Table:  to->_descendants.~map(); break;
 			default: break;
 		}
@@ -36,7 +114,7 @@ void Diatom::clone(const Diatom &from, Diatom *to, bool to_needs_cleanup) {
 	*_type_unsafe = from._type;
 
 	switch (to->_type) {
-		case Type::String: new (&to->_str_value) std::string(from._str_value); break;
+		case Type::String: new (&to->_str_value) Str(from._str_value); break;
 		case Type::Table:  new (&to->_descendants) _descendantmap(from._descendants); break;
 		case Type::Number:  to->_number_value = from._number_value; break;
 		case Type::Bool:    to->_bool_value = from._bool_value; break;

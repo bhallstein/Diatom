@@ -3,6 +3,7 @@
 #include "Diatom-Storage.h"
 #include <cassert>
 #include <unistd.h>
+#include <vector>
 
 #define p_assert(x) do {             \
 		printf("TEST: %38s", #x);    \
@@ -65,6 +66,22 @@ void testDiatom() {
 	p_assert(tl_1["monkeys"].isNumber());
 	p_assert(tl_1["custard"].isString());
 	p_assert(tl_1["bananalike"].isBool());
+	
+	printf("- Testing descendant ordering\n");
+	Diatom tl_o;
+	tl_o["n10"];
+	tl_o["n4"];
+	tl_o["n20a"];
+	tl_o["n20"];
+	tl_o["n1"];
+	tl_o["m3"];
+	std::vector<std::string> exp = {
+		"m3", "n1", "n4", "n10", "n20", "n20a"
+	};
+	int i = 0;
+	for (auto &desc : tl_o.descendants())
+		p_assert(desc.first == exp[i++]);
+		
 	
 	printf("- Testing table copying\n");
 	tl_1["russians"] = Diatom();
