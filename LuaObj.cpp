@@ -78,6 +78,9 @@ LuaObj& LuaObj::operator[] (const char *s) {
 	_descendantmap::iterator it = descendants.find(s);
 	return (it == descendants.end() ? _nilobject : it->second);
 }
+LuaObj& LuaObj::operator[] (const std::string &s) {
+	return (*this)[s.c_str()];
+}
 
 std::string LuaObj::_print() const {
 	std::stringstream ss;

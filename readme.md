@@ -11,7 +11,7 @@ LuaObj is a class for fetching tables of objects of basic types from lua.
 	- The type is represented in the `type` property, which is of the enum type `LuaObj::ValueType`
 	- Type names are: `NUMBER`, `BOOL`, `STRING`, `TABLE`, `NIL`
 	- Creating a LuaObj on an unsupported type will return a LuaObj of type NIL
-	- Table members of unsupported are skipped, i.e. not added to the descendants map at all
+	- Table members of unsupported type are skipped, i.e. not added to the descendants map at all
 - The value of the object is stored in one of the following properties, depending on type:
 	- `float number_value`
 	- `bool bool_value`

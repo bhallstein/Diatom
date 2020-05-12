@@ -48,13 +48,14 @@ public:
 		// differ from that in the original lua.
 	
 	LuaObj& operator[] (const char *);
-	bool isTable()  { return type == ValueType::TABLE; }
-	bool isNumber() { return type == ValueType::NUMBER; }
-	bool isString() { return type == ValueType::STRING; }
-	bool isBool()   { return type == ValueType::BOOL; }
-	bool isNil()    { return type == ValueType::NIL; }
+	LuaObj& operator[] (const std::string &);
+	bool isTable()  { return type == TABLE; }
+	bool isNumber() { return type == NUMBER; }
+	bool isString() { return type == STRING; }
+	bool isBool()   { return type == BOOL; }
+	bool isNil()    { return type == NIL; }
 private:
-	LuaObj() : type(ValueType::NIL) { }
+	LuaObj() : type(NIL) { }
 		// Create an empty/nil LuaObj
 
 	std::string _print() const;
