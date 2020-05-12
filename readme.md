@@ -25,10 +25,10 @@ Apart from tables, LuaObj supports numbers (i.e. floats), strings, bools, and ni
 	- `std::string str_value`
 
     if (myObj.type == LuaObj::Type::Table)
-		// iterate its descendants, perhaps
-		
-	if (myObj.type == LuaObj::Type::Numeric)
-		float f = myObj.number_value;
+        // iterate its descendants, perhaps
+    
+    if (myObj.type == LuaObj::Type::Numeric)
+        float f = myObj.number_value;
 
 
 ## Accessing Descendants
@@ -42,6 +42,9 @@ Descendants are accessed using the subscript operator:
 - Table keys:
 	- When populating the descendants map, LuaObj turns all table keys into strings
 	- The map is sorted using the Numericoid String Comparator, i.e. '10zxc' will come after '1zxc'.
+
+
+## Kthx
 
 See the .h for further details.
 
