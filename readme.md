@@ -1,68 +1,122 @@
 
-# About LuaObj
+# About Diatom
 
-LuaObj is a class which recursively converts Lua tables into nested C++ objects.
+Diatom is a simple table class, which can either hold a value, or a table of “descendants” (other Diatoms).
 
-## Creating
 
-The constructor simply takes a filename and the name of the (global) object to load, returning a LuaObj representing that object:
+## Types
+
+Diatom support only three types of value – numbers (i.e. doubles), strings, and bools. The can also be nil – i.e. not holding a value. You can check the type, & obtain the value, like so:
 
 ```cpp
-LuaObj myObj("file.lua", "a_table");
+Diatom d(2.718);
+d.isNumber();    // => true
+double exp = d.number_value();    // exp == 2.718
 ```
 
-- If the object is a table, the `descendants` map is populated recursively with the contents of the table.
-- If the object is a supported simple type, it is represented in the appropriate LuaObj property.
-
-Alternatively, you can construct a LuaObj from a Lua state that you manage yourself. You just need to push the table you want to load to position -1 on the stack:
+Instead of holding values, a *table* Diatom has a set of named descendants, which are other diatoms, which are indexed by string:
 
 ```cpp
-lua_State *L;
-if (!LuaObj::loadLuaFile("file.lua", &L))
-	; // oh dear
-
-lua_getglobal(L, "a_table");
-LuaObj myObj(L);
-lua_pop(L, 1);
-
-lua_close(L);
+Diatom d;
+d.isTable();    // => true
+d["exp"] = Diatom(exp);    // d["exp"] is a new number-Diatom
+                           // (you could also simply write d["exp"] = exp)
+table_diatom["exp"].number_value();    // => 2.718
 ```
 
-## Types & Values
 
-A LuaObj may represent a table containing other values, or a number, string, bool, or nil. The type is stored in the object’s `type` property, and is one of the enum `LuaObj::Type::T` values, `Numeric`, `Bool`, `String`, `Table`, or `_Nil`.
+## Copyability & Immutability
 
-The represented value itself is stored in another property – depending on type, `double number_value`, `bool bool_value`, or `std::string str_value`.
+All Diatoms can be copied, including tables, which will deep-copy.
+
+Diatoms are semi-immutable – their values cannot be set directly after construction. However, they can be altered by copying from another Diatom:
 
 ```cpp
-if (myObj.type == LuaObj::Type::Table)
-    ; // iterate its descendants, perhaps
+Diatom d1(3.14);
+Diatom d2("Archaeteuthis");
+d1 = d2;
+d1.str_value();    // => "To be or not to be"
+```
+
+The following syntactic sugar is available:
+
+```cpp
+d1 = "Archaeteuthis";
+```
     
-if (myObj.type == LuaObj::Type::Numeric)
-    double f = myObj.number_value;
-```
+Here, C++ constructs a temporary Diatom to hold the string, and calls d1’s `operator=`, copying the temporary into d1, which is now a string Diatom.
 
 
-## Accessing Descendants
+## However, tables are mutable
 
-Descendants are accessed using the subscript operator:
+The exception, to allow adding and removing descendants, is table Diatoms. The following is perfectly valid:
 
 ```cpp
-LuaObj a_descendant = myObj["descendant_name"];
+Diatom seabird_genuses;
+table["shearwater"] = "Puffinus";
+table["cormorant"]  = "Phalacrocorax";
+table["puffin"]     = "Fratercula";
 ```
 
-Table members of unsupported type are skipped, i.e. not added to the descendants map at all.
 
-On descendant ordering:
+## Constructing 
 
-- When populating the descendants map, LuaObj turns all table keys into strings
-- The map is sorted using the Numericoid String Comparator, i.e. '10zxc' will come after '1zxc'.
+```cpp
+Diatom()
+```
+    
+The default constructor creates an empty table Diatom.
+
+```cpp 
+Diatom(double) / Diatom(bool) / Diatom(string or const char *)
+```
+
+Create number, bool, or string Diatoms.
+
+There is no constructor to create a nil Diatom. Use the static method:
+
+```cpp
+Diatom d_nil = Diatom::NilObject();
+```
+
+## Methods
+
+```cpp
+bool isTable()
+isNumber()
+isBool()
+isString()
+isNil()
+```
+
+These should be self-explanatory.
+
+```cpp
+Diatom::Type::T type()
+```
+
+Return the Diatom’s type as an enum. The possible values of the enum are: `Number` / `Bool` / `String` / `Table` / `_Nil`.
+
+```cpp
+Diatom& operator[](std::string s or const char *s)
+```
+
+If a table, get the descendant named `s`.
+
+```cpp
+const double &           number_value()
+const bool &             bool_value()
+const std::string &      str_value()
+Diatom::_descendantmap & descendants()
+```
+
+Get the value, or the map of descendants.
 
 
 ## Kthx
 
-See the .h for further details.
+That‘s it. Diatom is pretty small.
 
-LuaObj is made available under the MIT licence.
+Diatom in its current form was written in April 2015, having started out as LuaObj in 2012, and is made available under the MIT licence.
 
-– Ben Hallstein, 2012
+– Ben Hallstein, 2012/15

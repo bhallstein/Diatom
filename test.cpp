@@ -31,27 +31,29 @@ int main() {
 void testDiatom() {
 	p_header("Testing Diatom");
 	
-	printf("- Testing Numbers\n");
+	printf("- Testing numbers\n");
 	Diatom nl_1((double) 5), nl_2(7.42);
 	p_assert(nl_1.isNumber() && nl_2.isNumber());
 	p_assert(nl_1.number_value() == 5.0);
 	p_assert(nl_2.number_value() == 7.42);
 	
-	printf("- Testing Booleans\n");
+	printf("- Testing booleans\n");
 	Diatom bl(false);
 	p_assert(bl.isBool());
 	p_assert(bl.bool_value() == false);
 	
-	printf("- Testing Strings\n");
+	printf("- Testing strings\n");
 	std::string s = "Who would fardels bear";
 	Diatom sl_1(s), sl_2(s.c_str());
 	p_assert(sl_1.isString() && sl_2.isString());
 	p_assert(sl_1.str_value() == s);
 	p_assert(sl_2.str_value() == s);
 	
-	printf("- Testing Nil\n");
-	Diatom nill = Diatom::NilObject();
-	p_assert(nill.isNil());	
+	printf("- Testing nil\n");
+	Diatom nil1 = Diatom::NilObject();
+	Diatom nil2 = Diatom::NilObject();
+	p_assert(nil1.isNil());
+	p_assert(&nil1 != &nil2);
 	
 	printf("- Testing Tables\n");
 	Diatom tl_1;

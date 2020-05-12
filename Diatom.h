@@ -64,7 +64,7 @@ public:
 	bool isBool()   const { return _type == Type::Bool; }
 	bool isNil()    const { return _type == Type::_Nil; }
 	
-	const Type::T & type() { return _type; }
+	Type::T type() { return _type; }
 	
 	const double &         number_value() { return _number_value; }
 	const bool &           bool_value()   { return _bool_value; }
