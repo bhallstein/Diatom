@@ -6,7 +6,7 @@
 //  - String
 //  - Bool
 //  - Nil
-//  - Nested objects ('Table')
+//  - Table (other Diatom objects)
 //
 // -- MIT Licensed: http://opensource.org/licenses/MIT/
 // -- BH 2012
@@ -17,7 +17,6 @@
 
 #include <string>
 #include <vector>
-#include <algorithm>
 
 
 struct Diatom {

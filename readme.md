@@ -1,10 +1,10 @@
 # Diatom
 
-A C++ object that stores strings, numbers, bools, or other Diatoms. These objects then trivially serialize to and from strings.
+A C++ object that stores strings, numbers, bools, or other Diatoms. Then trivially serialize to and from strings.
 
 Created to collect data in a video game prior to serialization.
 
-Written in 2012, modified 2015 & 2020. Doesn't include unicode support. It's very much a hobbyist/tinkering project, not for general use.
+Written 2012, modified 2015 & 2020. Doesn't include unicode support. It's very much a hobbyist/tinkering project, not for general use.
 
 To run tests: `bash run.sh` from the `/test` directory.
 
@@ -31,9 +31,9 @@ Diatom's defult constructor produces a table Diatom:
 ```cpp
 Diatom d;
 d.is_table();         // => true
-d["my_prop"] = 7.;    // d["my_prop"] is now number Diatom with value 7.
+d["my_prop"] = 7.;    // d["my_prop"] is now a number Diatom with value 7.
 
-d["my_prop"].value__number;    // => 2.718
+d["my_prop"].value__number;    // => 7
 ```
 
 
@@ -52,10 +52,10 @@ Diatom::Type::Nil
 ### Properties
 
 ```cpp
-Diatom::Type::T  type;
-double           value__number;
-bool             value__bool;
-std::string      value__string;
+Diatom::Type::T  type
+double           value__number
+bool             value__bool
+std::string      value__string
 ```
 
 ### Methods
@@ -98,7 +98,7 @@ Diatom d_bool = true;
 or:
 
 Diatom d_pi{3.14};
-Diatom d_str{A string Diatom};
+Diatom d_str{"A string Diatom"};
 Diatom d_bool{true};
 ```
 
@@ -114,7 +114,7 @@ Diatom d2 = d1;
 
 ## Serialization
 
-`DiatomSerialization.h` defines methods to convert Diatoms to and from strings. The format is line by line key value pairs:
+`DiatomSerialization.h` defines methods to convert Diatoms to and from strings. The format is simple key value pairs:
 
 ```
 lemurs: 5
@@ -135,9 +135,9 @@ DiatomParseResult diatom__unserialize(const std::string &s)
 `DiatomParseResult` is a struct as follows:
 
 ```cpp
-  bool success;
-  std::string error_string;
-  Diatom d;
+bool        success
+std::string error_string
+Diatom      d
 ```
 
 **Example:**
