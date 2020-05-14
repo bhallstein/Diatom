@@ -1,0 +1,6 @@
+Don't use.
+Should be trivial to convert your data objects to diatoms.
+This just adds needless class complexity.
+
+
+TODO: remove

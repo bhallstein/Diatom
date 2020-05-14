@@ -22,8 +22,8 @@ A Diatom is a string, number (double), boolean, or nil. Or a Diatom is a **table
 
 ```cpp
 Diatom d = 2.718;
-d.is_number();    // -> true
-d.number_value(); // -> 2.718
+d.is_number();     // -> true
+d.value__number;   // -> 2.718
 ```
 
 Diatom's defult constructor produces a table Diatom:
