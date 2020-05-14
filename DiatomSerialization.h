@@ -41,7 +41,7 @@ struct DiatomParseResult {
 };
 
 std::string diatom__serialize(Diatom &d);
-DiatomParseResult diatom__unserialize(std::string &);
+DiatomParseResult diatom__unserialize(const std::string &);
 
 
 
@@ -281,7 +281,7 @@ struct _DiatomSerialization {
   }
 
   static Token token__number_property(std::string::iterator it, std::string &s) {
-    if (!(is_numeric(*it) || *it == '.')) {
+    if (!(is_numeric(*it) || *it == '.' || *it == '-')) {
       return Token{ Token::Invalid };
     }
     try {
@@ -362,7 +362,10 @@ struct _DiatomSerialization {
   };
 
   static bool line_is_valid(TokenVector tokens) {
-    // NB: non-leading optional whitespace items and trailing newlines must have been stripped
+    // NB: non-leading optional whitespace items and empty lines must have been stripped
+    if (tokens.size() == 0) {
+      return false;
+    }
     auto types = map<Token, Token::Type>(tokens, [](Token t)  {
       return t.type;
     });
@@ -409,6 +412,9 @@ struct _DiatomSerialization {
   }
 
   static TokenVector strip_nonleading_whitespace(const TokenVector &ts) {
+    if (ts.size() == 0) {
+      return ts;
+    }
     TokenVector out{ ts[0] };
     TokenVector allbutfirst{ts.begin() + 1, ts.end()};
     allbutfirst = filter(allbutfirst, [](Token t) {
@@ -565,6 +571,13 @@ struct _DiatomSerialization {
   static DiatomParseResult unserialize(std::string s) {
     while (s.back() == '\n') {
       s.pop_back();
+    }
+    size_t i_last_leading_newline = -1;
+    for (auto i = s.begin(); *i == '\n' && i < s.end(); ++i) {
+      ++i_last_leading_newline;
+    }
+    if (i_last_leading_newline != -1) {
+      s = std::string(s.begin() + i_last_leading_newline + 1, s.end());
     }
 
     auto lines_str = split(s, '\n');

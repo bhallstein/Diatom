@@ -221,11 +221,15 @@ void testDiatom() {
 
   std::string tok_number = "13.245";
   std::string tok_notnumber = "f39284";
+  std::string tok_negnumber = "-37.6";
   auto t_number    = _DiatomSerialization::token__number_property(tok_number.begin(), tok_number);
   auto t_notnumber = _DiatomSerialization::token__number_property(tok_notnumber.begin(), tok_notnumber);
-  auto texp_number = Token{ Token::Property__Number, 13.245, "13.245" };
+  auto t_negnumber = _DiatomSerialization::token__number_property(tok_negnumber.begin(), tok_negnumber);
+  auto texp_number    = Token{ Token::Property__Number, 13.245, "13.245" };
+  auto texp_negnumber = Token{ Token::Property__Number, -37.6, "-37.6" };
   p_assert(t_number == texp_number);
   p_assert(t_notnumber == texp_invalid);
+  p_assert(t_negnumber == texp_negnumber);
 
   std::string tok_bool1 = "truexyz";
   std::string tok_bool2 = "falsexyz";
@@ -431,21 +435,22 @@ void testDiatom() {
 
 
   p_header("unserialize()");
-  auto unsz_result = diatom__unserialize(
+  std::string animals =
     "lemurs: 5\n"
     "birds:\n"
     "  blue_tits: \"14\"\n"
     "  aquatic:\n"
     "    penguins: 10\n"
-    "  crows: false\n"
-  );
+    "  crows: false\n";
+  auto unsz_result = diatom__unserialize(animals);
   auto unsz_fail_result = diatom__unserialize("muffins: @7\n");
   DiatomParseResult unsz_fail_result_exp{
     false,
     "Unexpected input at line 1",
   };
+  auto unsz_leading_newlines_result = diatom__unserialize(std::string("\n\n") + animals);
   Diatom d = unsz_result.d;
-  p_assert(unsz_result.success == true);
+  p_assert(unsz_result.success);
   p_assert(d.descendants.size() == 2);
   p_assert(d["lemurs"].is_number());
   p_assert(d["lemurs"].value__number == 5);
@@ -459,6 +464,7 @@ void testDiatom() {
   p_assert(d["birds"]["aquatic"]["penguins"].is_number());
   p_assert(d["birds"]["aquatic"]["penguins"].value__number == 10);
   p_assert(unsz_fail_result == unsz_fail_result_exp);
+  p_assert(unsz_leading_newlines_result.success);
 }
 
 
