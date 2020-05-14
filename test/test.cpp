@@ -457,7 +457,7 @@ void testDiatom() {
   p_assert(d["birds"].is_table());
   p_assert(d["birds"].descendants.size() == 3);
   p_assert(d["birds"]["blue_tits"].is_string());
-  p_assert(d["birds"]["blue_tits"].value__string == "\"14\"");
+  p_assert(d["birds"]["blue_tits"].value__string == "14");
   p_assert(d["birds"]["crows"].is_bool());
   p_assert(d["birds"]["crows"].value__bool == false);
   p_assert(d["birds"]["aquatic"].is_table());

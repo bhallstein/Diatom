@@ -556,7 +556,10 @@ struct _DiatomSerialization {
   }
 
   static Diatom line_to_single_diatom(Line l) {
-    if (l.prop_str.type != Token::Invalid) { return l.prop_str.s; }
+    if (l.prop_str.type != Token::Invalid) {
+      const std::string &s = l.prop_str.s;
+      return s.length() > 0 ? std::string(s.begin() + 1, s.end() - 1) : s;
+    }
     else if (l.prop_num.type != Token::Invalid) { return l.prop_num.n; }
     else if (l.prop_bool.type != Token::Invalid) {
       return l.prop_bool.s == "true" ? true : false;
