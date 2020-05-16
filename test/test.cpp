@@ -465,6 +465,9 @@ void testDiatom() {
   p_assert(d["birds"]["aquatic"]["penguins"].value__number == 10);
   p_assert(unsz_fail_result == unsz_fail_result_exp);
   p_assert(unsz_leading_newlines_result.success);
+  p_assert(d["birds"].descendants[0].name == "blue_tits");
+  p_assert(d["birds"].descendants[1].name == "aquatic");
+  p_assert(d["birds"].descendants[2].name == "crows");
 }
 
 

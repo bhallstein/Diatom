@@ -71,13 +71,13 @@ Diatom operator[](const Diatom &)
 
 template <class F>
 void each(F f)
-	// for a table Diatom, calls f(std::string name, Diatom entry)
-	// for each child
+  // for a table Diatom, calls f(std::string name, Diatom entry)
+  // for each child
 
 template <class F>
 void recurse(F f)
-	// for a table Diatom, recursively traverse descendants calling
-	// f(std::string name, Diatom entry) on each
+  // for a table Diatom, recursively traverse descendants calling
+  // f(std::string name, Diatom entry) on each
 ```
 
 
@@ -164,6 +164,6 @@ d["characters"]["juliet"] = "capulet";
 
 diatom__serialize(d);     // characters:
                           //   romeo: "montague"
-													//   juliet: "capulet"
+                          //   juliet: "capulet"
 ```
 

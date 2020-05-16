@@ -18,6 +18,7 @@
 //
 // MIT licensed - http://opensource.org/licenses/MIT
 // -- BH 2012
+//
 
 #ifndef __DiatomSerialization_h
 #define __DiatomSerialization_h
@@ -649,6 +650,11 @@ struct _DiatomSerialization {
 
       (*(parent ? parent : &top))[l.name.s] = l.d;
     }
+    top.recurse([](std::string key, Diatom &d) {
+      if (d.is_table()) {
+        std::reverse(d.descendants.begin(), d.descendants.end());
+      }
+    });
 
     return { true, "", top };
   }

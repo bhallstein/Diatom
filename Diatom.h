@@ -102,6 +102,20 @@ struct Diatom {
       }
     }
   }
+
+
+  // Other
+  // -----------------------------
+
+  std::string type_string() {
+    return (
+      type == Type::Number ? "Number" :
+      type == Type::String ? "String" :
+      type == Type::Bool   ? "Bool"   :
+      type == Type::Table  ? "Table"  :
+      type == Type::Nil    ? "Nil"    : "Unknown"
+    );
+  };
 };
 
 
