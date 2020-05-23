@@ -167,7 +167,7 @@ struct _DiatomSerialization {
         s += "\n";
       }
       d.each([&s, indentation](std::string &key, Diatom &d) -> void {
-        if (d.is_nil()) {
+        if (d.is_empty()) {
           return;
         }
         s += indent(indentation);
@@ -178,7 +178,7 @@ struct _DiatomSerialization {
     else if (d.is_number()) { s += key_value_space + float_format(d.value__number); }
     else if (d.is_string()) { s += key_value_space + std::string("\"") + d.value__string + "\""; }
     else if (d.is_bool())   { s += key_value_space + (d.value__bool ? "true" : "false"); }
-    else if (d.is_nil())    { };
+    else if (d.is_empty())  { };
 
     if (!d.is_table()) {
       s += "\n";

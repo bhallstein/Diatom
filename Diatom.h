@@ -5,7 +5,7 @@
 //  - Number
 //  - String
 //  - Bool
-//  - Nil
+//  - Empty
 //  - Table (other Diatom objects)
 //
 // -- MIT Licensed: http://opensource.org/licenses/MIT/
@@ -22,7 +22,7 @@
 
 struct Diatom {
   struct Type {
-    enum T { Number, Bool, String, Table, Nil };
+    enum T { Number, Bool, String, Table, Empty };
   };
 
   template <class T>
@@ -43,7 +43,7 @@ struct Diatom {
   std::string      value__string;
   TableEntryVector descendants;
 
-  bool is_nil()    { return type == Type::Nil;   }
+  bool is_empty()  { return type == Type::Empty;  }
   bool is_number() { return type == Type::Number; }
   bool is_bool()   { return type == Type::Bool;   }
   bool is_string() { return type == Type::String; }
@@ -74,7 +74,7 @@ struct Diatom {
     const TableEntryVector::iterator &it = index_of(s);
 
     if (it == descendants.end()) {
-      descendants.push_back({ s, Diatom(Type::Nil) });
+      descendants.push_back({ s, Diatom(Type::Empty) });
       return descendants.back().item;
     }
 
@@ -113,7 +113,7 @@ struct Diatom {
       type == Type::String ? "String" :
       type == Type::Bool   ? "Bool"   :
       type == Type::Table  ? "Table"  :
-      type == Type::Nil    ? "Nil"    : "Unknown"
+      type == Type::Empty  ? "Empty"  : "Unknown"
     );
   };
 };

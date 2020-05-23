@@ -18,7 +18,7 @@ cell walls made from glass.
 
 ## Types
 
-A Diatom is a string, number (double), boolean, or nil. Or a Diatom is a **table** holding other Diatoms.
+A Diatom is a string, number (double), boolean, or empty. Or a Diatom is a **table** holding other Diatoms.
 
 ```cpp
 Diatom d = 2.718;
@@ -46,7 +46,7 @@ Diatom::Type::Number
 Diatom::Type::Bool
 Diatom::Type::String
 Diatom::Type::Table
-Diatom::Type::Nil
+Diatom::Type::Empty
 ```
 
 ### Properties
@@ -61,7 +61,7 @@ std::string      value__string
 ### Methods
 
 ```cpp
-bool is_nil()
+bool is_empty()
 bool is_number()
 bool is_bool()
 bool is_string()

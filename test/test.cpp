@@ -13,7 +13,7 @@ void printtype(Diatom &d) {
     case Diatom::Type::Number: { printf("number"); break; }
     case Diatom::Type::String: { printf("string"); break; }
     case Diatom::Type::Bool:   { printf("bool");   break; }
-    case Diatom::Type::Nil:    { printf("nil");    break; }
+    case Diatom::Type::Empty:  { printf("empty");  break; }
     case Diatom::Type::Table:  { printf("table");  break; }
   }
   printf("\n");
@@ -58,27 +58,27 @@ void testDiatom() {
   p_assert(s2.value__string == cstr);
 
 
-  p_header("nil type");
-  Diatom nil1 = Diatom(Diatom::Type::Nil);
-  Diatom nil2 = Diatom(Diatom::Type::Nil);
-  p_assert(nil1.is_nil());
+  p_header("empty type");
+  Diatom empty1 = Diatom(Diatom::Type::Empty);
+  Diatom empty2 = Diatom(Diatom::Type::Empty);
+  p_assert(empty1.is_empty());
 
 
   p_header("tables");
   Diatom t1;
   p_assert(t1.is_table());
-  p_assert(t1["monkeys"].is_nil());
+  p_assert(t1["monkeys"].is_empty());
   t1["custard"] = "lemons";
   t1["bananas"] = false;
   p_assert(t1.descendants.size() == 3);
-  p_assert(t1["monkeys"].is_nil());
+  p_assert(t1["monkeys"].is_empty());
   p_assert(t1["custard"].is_string());
   p_assert(t1["bananas"].is_bool());
   t1["subtable"] = Diatom();
   t1["subtable"]["pears"];
   t1["subtable"]["oranges"] = 0.0;
   p_assert(t1["subtable"].is_table());
-  p_assert(t1["subtable"]["pears"].is_nil());
+  p_assert(t1["subtable"]["pears"].is_empty());
   p_assert(t1["subtable"]["oranges"].is_number());
 
 
