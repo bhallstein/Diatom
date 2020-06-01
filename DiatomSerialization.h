@@ -41,8 +41,8 @@ struct DiatomParseResult {
   }
 };
 
-std::string diatom__serialize(Diatom &d);
-DiatomParseResult diatom__unserialize(const std::string &);
+static std::string diatom__serialize(Diatom &d);
+static DiatomParseResult diatom__unserialize(const std::string &);
 
 
 
