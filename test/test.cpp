@@ -98,6 +98,49 @@ void testDiatom() {
   p_assert(r2["mikhail"].is_string());
   p_assert(r2["mikhail"].value__string == "Gorbachev");
 
+  p_header("remove_child");
+  Diatom birds;
+  birds["A"] = "albatross";
+  birds["B"] = "bullfinch";
+  birds["C"] = "cassowary";
+  birds.remove_child("B");
+  p_assert(birds.descendants.size() == 2);
+  p_assert(birds["A"].value__string == "albatross");
+  p_assert(birds["C"].value__string == "cassowary");
+
+  p_header("recurse");
+  Diatom birds_2;
+  birds_2["A"] = "albatross";
+  birds_2["B"] = "bullfinch";
+  birds_2["C"] = Diatom();
+  birds_2["C"]["1"] = "cassowary";
+  birds_2["C"]["2"] = "chaffinch";
+  std::vector<std::string> birds_out1;
+  std::vector<std::string> birds_out2;
+  birds_2.recurse([&](std::string name, Diatom d) {
+    if (d.is_table()) {
+      birds_out1.push_back(name + " -- table");
+    }
+    else {
+      birds_out1.push_back(name + std::string(":") + d.value__string);
+    }
+  });
+  birds_2.recurse([&](std::string name, Diatom d) {
+    birds_out2.push_back(name);
+  }, true);
+  std::vector<std::string> birds_exp1 = {
+    "A:albatross",
+    "B:bullfinch",
+    "C -- table",
+    "1:cassowary",
+    "2:chaffinch",
+  };
+  std::vector<std::string> birds_exp2 = {
+    "", "A", "B", "C", "1", "2",
+  };
+  p_assert(birds_out1 == birds_exp1);
+  p_assert(birds_out2 == birds_exp2);
+
 
   p_file_header("DiatomSerialization.h");
   p_header("float_format");

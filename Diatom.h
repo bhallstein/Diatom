@@ -81,6 +81,13 @@ struct Diatom {
     return it->item;
   }
 
+  void remove_child(std::string s) {
+    auto i = index_of(s);
+    if (i != descendants.end()) {
+      descendants.erase(i);
+    }
+  }
+
 
   // Iteration
   // -----------------------------
@@ -93,10 +100,12 @@ struct Diatom {
   }
 
   template <class F>
-  void recurse(F f) {
+  void recurse(F f, bool include_top = false) {
+    if (include_top) {
+      f("", *this);
+    }
     for (DTableEntry &entry : descendants) {
       f(entry.name, entry.item);
-
       if (entry.item.type == Type::Table) {
         entry.item.recurse(f);
       }
