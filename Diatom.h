@@ -26,22 +26,22 @@ struct Diatom {
   };
 
   template <class T>
-  struct TableEntry {
+  struct __TableEntry {
     std::string name;
     T item;
   };
-  typedef TableEntry<Diatom> DTableEntry;
-  typedef std::vector<DTableEntry> TableEntryVector;
+  typedef __TableEntry<Diatom> TableEntry;
+  typedef std::vector<TableEntry> TableEntryVector;
 
 
   // Properties
   // -----------------------------
 
   Type::T type;
-  double           value__number;
-  bool             value__bool;
-  std::string      value__string;
-  TableEntryVector descendants;
+  double           number_value;
+  bool             bool_value;
+  std::string      string_value;
+  TableEntryVector table_entries;
 
   bool is_empty()  { return type == Type::Empty;  }
   bool is_number() { return type == Type::Number; }
@@ -54,10 +54,10 @@ struct Diatom {
   // -----------------------------
 
   Diatom()                     : type(Type::Table) { };
-  Diatom(double x)             : type(Type::Number), value__number(x) { }
-  Diatom(bool x)               : type(Type::Bool),   value__bool(x)   { }
-  Diatom(const char *s)        : type(Type::String), value__string(s) { }
-  Diatom(const std::string &s) : type(Type::String), value__string(s) { }
+  Diatom(double x)             : type(Type::Number), number_value(x) { }
+  Diatom(bool x)               : type(Type::Bool),   bool_value(x)   { }
+  Diatom(const char *s)        : type(Type::String), string_value(s) { }
+  Diatom(const std::string &s) : type(Type::String), string_value(s) { }
   Diatom(Type::T t) : type(t) { }
 
 
@@ -65,7 +65,7 @@ struct Diatom {
   // -----------------------------
 
   TableEntryVector::iterator index_of(const std::string &s) {
-    return std::find_if(descendants.begin(), descendants.end(), [=](const DTableEntry &item) {
+    return std::find_if(table_entries.begin(), table_entries.end(), [=](const TableEntry &item) {
       return item.name == s;
     });
   }
@@ -73,9 +73,9 @@ struct Diatom {
   Diatom& operator[](const std::string &s) {
     const TableEntryVector::iterator &it = index_of(s);
 
-    if (it == descendants.end()) {
-      descendants.push_back({ s, Diatom(Type::Empty) });
-      return descendants.back().item;
+    if (it == table_entries.end()) {
+      table_entries.push_back({ s, Diatom(Type::Empty) });
+      return table_entries.back().item;
     }
 
     return it->item;
@@ -83,8 +83,8 @@ struct Diatom {
 
   void remove_child(std::string s) {
     auto i = index_of(s);
-    if (i != descendants.end()) {
-      descendants.erase(i);
+    if (i != table_entries.end()) {
+      table_entries.erase(i);
     }
   }
 
@@ -94,7 +94,7 @@ struct Diatom {
 
   template <class F>
   void each(F f) {
-    for (DTableEntry &entry : descendants) {
+    for (TableEntry &entry : table_entries) {
       f(entry.name, entry.item);
     }
   }
@@ -104,7 +104,7 @@ struct Diatom {
     if (include_top) {
       f("", *this);
     }
-    for (DTableEntry &entry : descendants) {
+    for (TableEntry &entry : table_entries) {
       f(entry.name, entry.item);
       if (entry.item.type == Type::Table) {
         entry.item.recurse(f);

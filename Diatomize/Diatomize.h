@@ -26,12 +26,12 @@ namespace Diatomize {
     return d;
   }
 
-  inline void _deserialize(Diatom &d, int &x)    {  x = d.value__number;  }
-  inline void _deserialize(Diatom &d, float &x)  {  x = d.value__number;  }
-  inline void _deserialize(Diatom &d, double &x) {  x = d.value__number;  }
-  inline void _deserialize(Diatom &d, bool &b)   {  b = d.value__bool; }
-  inline void _deserialize(Diatom &d, std::string &x) {  x = d.value__string;  }
-  inline void _deserialize(Diatom &d, std::string *x) {  x = new std::string(d.value__string); }
+  inline void _deserialize(Diatom &d, int &x)    {  x = d.number_value;  }
+  inline void _deserialize(Diatom &d, float &x)  {  x = d.number_value;  }
+  inline void _deserialize(Diatom &d, double &x) {  x = d.number_value;  }
+  inline void _deserialize(Diatom &d, bool &b)   {  b = d.bool_value; }
+  inline void _deserialize(Diatom &d, std::string &x) {  x = d.string_value;  }
+  inline void _deserialize(Diatom &d, std::string *x) {  x = new std::string(d.string_value); }
   template <typename T>
   inline void _deserialize(Diatom &d, std::vector<T> &vec) {
     vec.clear();

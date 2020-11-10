@@ -23,7 +23,7 @@
 
 // A custom serializer function
 std::function<void(Diatom&, float&)> float_d_llambda = [](Diatom &d, float &x) {
-  x = d.value__number;
+  x = d.number_value;
 };
 
 

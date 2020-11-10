@@ -34,8 +34,8 @@ void testDiatom() {
   Diatom n1((double) 5);
   Diatom n2(7.42);
   p_assert(n1.is_number());
-  p_assert(n1.value__number == 5.0);
-  p_assert(n2.value__number == 7.42);
+  p_assert(n1.number_value == 5.0);
+  p_assert(n2.number_value == 7.42);
 
 
   p_header("boolean type");
@@ -43,8 +43,8 @@ void testDiatom() {
   Diatom b2(true);
   p_assert(b1.is_bool());
   p_assert(b2.is_bool());
-  p_assert(b1.value__bool == false);
-  p_assert(b2.value__bool == true);
+  p_assert(b1.bool_value == false);
+  p_assert(b2.bool_value == true);
 
 
   p_header("string type");
@@ -54,8 +54,8 @@ void testDiatom() {
   Diatom s2(cstr);
   p_assert(s1.is_string());
   p_assert(s2.is_string());
-  p_assert(s1.value__string == str);
-  p_assert(s2.value__string == cstr);
+  p_assert(s1.string_value == str);
+  p_assert(s2.string_value == cstr);
 
 
   p_header("empty type");
@@ -70,7 +70,7 @@ void testDiatom() {
   p_assert(t1["monkeys"].is_empty());
   t1["custard"] = "lemons";
   t1["bananas"] = false;
-  p_assert(t1.descendants.size() == 3);
+  p_assert(t1.table_entries.size() == 3);
   p_assert(t1["monkeys"].is_empty());
   p_assert(t1["custard"].is_string());
   p_assert(t1["bananas"].is_bool());
@@ -92,11 +92,11 @@ void testDiatom() {
   Diatom r2 = russians;
   p_assert(russians.is_table());
   p_assert(r2.is_table());
-  p_assert(r2.descendants.size() == 3);
+  p_assert(r2.table_entries.size() == 3);
   p_assert(r2["scientists"].is_table());
-  p_assert(r2["scientists"].descendants.size() == 1);
+  p_assert(r2["scientists"].table_entries.size() == 1);
   p_assert(r2["mikhail"].is_string());
-  p_assert(r2["mikhail"].value__string == "Gorbachev");
+  p_assert(r2["mikhail"].string_value == "Gorbachev");
 
   p_header("remove_child");
   Diatom birds;
@@ -104,9 +104,9 @@ void testDiatom() {
   birds["B"] = "bullfinch";
   birds["C"] = "cassowary";
   birds.remove_child("B");
-  p_assert(birds.descendants.size() == 2);
-  p_assert(birds["A"].value__string == "albatross");
-  p_assert(birds["C"].value__string == "cassowary");
+  p_assert(birds.table_entries.size() == 2);
+  p_assert(birds["A"].string_value == "albatross");
+  p_assert(birds["C"].string_value == "cassowary");
 
   p_header("recurse");
   Diatom birds_2;
@@ -122,7 +122,7 @@ void testDiatom() {
       birds_out1.push_back(name + " -- table");
     }
     else {
-      birds_out1.push_back(name + std::string(":") + d.value__string);
+      birds_out1.push_back(name + std::string(":") + d.string_value);
     }
   });
   birds_2.recurse([&](std::string name, Diatom d) {
@@ -494,23 +494,23 @@ void testDiatom() {
   auto unsz_leading_newlines_result = diatom__unserialize(std::string("\n\n") + animals);
   Diatom d = unsz_result.d;
   p_assert(unsz_result.success);
-  p_assert(d.descendants.size() == 2);
+  p_assert(d.table_entries.size() == 2);
   p_assert(d["lemurs"].is_number());
-  p_assert(d["lemurs"].value__number == 5);
+  p_assert(d["lemurs"].number_value == 5);
   p_assert(d["birds"].is_table());
-  p_assert(d["birds"].descendants.size() == 3);
+  p_assert(d["birds"].table_entries.size() == 3);
   p_assert(d["birds"]["blue_tits"].is_string());
-  p_assert(d["birds"]["blue_tits"].value__string == "14");
+  p_assert(d["birds"]["blue_tits"].string_value == "14");
   p_assert(d["birds"]["crows"].is_bool());
-  p_assert(d["birds"]["crows"].value__bool == false);
+  p_assert(d["birds"]["crows"].bool_value == false);
   p_assert(d["birds"]["aquatic"].is_table());
   p_assert(d["birds"]["aquatic"]["penguins"].is_number());
-  p_assert(d["birds"]["aquatic"]["penguins"].value__number == 10);
+  p_assert(d["birds"]["aquatic"]["penguins"].number_value == 10);
   p_assert(unsz_fail_result == unsz_fail_result_exp);
   p_assert(unsz_leading_newlines_result.success);
-  p_assert(d["birds"].descendants[0].name == "blue_tits");
-  p_assert(d["birds"].descendants[1].name == "aquatic");
-  p_assert(d["birds"].descendants[2].name == "crows");
+  p_assert(d["birds"].table_entries[0].name == "blue_tits");
+  p_assert(d["birds"].table_entries[1].name == "aquatic");
+  p_assert(d["birds"].table_entries[2].name == "crows");
 }
 
 

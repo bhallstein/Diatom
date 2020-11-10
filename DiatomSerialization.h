@@ -174,9 +174,9 @@ struct _DiatomSerialization {
         s += serialize(d, indentation + 1, true);
       });
     }
-    else if (d.is_number()) { s += key_value_space + float_format(d.value__number); }
-    else if (d.is_string()) { s += key_value_space + std::string("\"") + d.value__string + "\""; }
-    else if (d.is_bool())   { s += key_value_space + (d.value__bool ? "true" : "false"); }
+    else if (d.is_number()) { s += key_value_space + float_format(d.number_value); }
+    else if (d.is_string()) { s += key_value_space + std::string("\"") + d.string_value + "\""; }
+    else if (d.is_bool())   { s += key_value_space + (d.bool_value ? "true" : "false"); }
     else if (d.is_empty())  { };
 
     if (!d.is_table()) {
@@ -633,7 +633,7 @@ struct _DiatomSerialization {
     Diatom top;
     for (size_t i = lines.size() - 1; i != -1; --i) {
       Line &l = lines[i];
-      if (l.d.descendants.size() == 0) {
+      if (l.d.table_entries.size() == 0) {
         l.d = line_to_single_diatom(l);
       }
 
@@ -651,7 +651,7 @@ struct _DiatomSerialization {
     }
     top.recurse([](std::string key, Diatom &d) {
       if (d.is_table()) {
-        std::reverse(d.descendants.begin(), d.descendants.end());
+        std::reverse(d.table_entries.begin(), d.table_entries.end());
       }
     });
 
