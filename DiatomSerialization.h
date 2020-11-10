@@ -1,7 +1,7 @@
 //
 // DiatomSerialization.h
 //
-// - Diatom serializes like so:
+// - A .diatom file:
 //
 //    various_items:
 //      a_number: 7
@@ -66,14 +66,13 @@ struct _DiatomSerialization {
       }
     }
 
-    char last = *it__last_nonzero;
     return std::string(
       s.begin(),
-      it__last_nonzero + (last == '.' ? 0 : 1)
+      it__last_nonzero + (*it__last_nonzero == '.' ? 0 : 1)
     );
 
-    // Note: the proportion of numbers perfectly representable as doubles within
-    // a finite range of the real numbers is zero.
+    // Note: within a nonzero range of the real numbers the proportion that are
+    // perfectly representable as a double is zero.
     // So some numbers will serialize as expected: eg integers, multiples of 0.25.
     // Others will include the floating point error, e.g. 2.4 -> 2.39999999999999991
   }
