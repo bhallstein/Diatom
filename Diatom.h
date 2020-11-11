@@ -88,6 +88,10 @@ struct Diatom {
     }
   }
 
+  bool has(std::string key) {
+    return index_of(key) != table_entries.end();
+  }
+
 
   // Iteration
   // -----------------------------
