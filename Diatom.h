@@ -38,8 +38,10 @@ struct Diatom {
   // -----------------------------
 
   Type::T type;
-  double           number_value;
-  bool             bool_value;
+  union {
+    double number_value;
+    bool   bool_value;
+  };
   std::string      string_value;
   TableEntryVector table_entries;
 
